@@ -1,0 +1,55 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "9001:9000"
+    volumes:
+      - ./backend:/var/www
+    environment:
+      - APP_ENV=local
+      - APP_KEY=base64:random-key
+      - APP_DEBUG=true
+      - APP_URL=http://127.0.0.1:8000
+      - DB_CONNECTION=mysql
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_DATABASE=conecta-huggy
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_DATABASE: conecta-huggy
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  db_data:
