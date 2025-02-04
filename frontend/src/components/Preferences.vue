@@ -49,7 +49,7 @@ import { ref, onMounted, watchEffect  } from 'vue';
 import { authStore } from "@/stores/authStore";
 import { segmentStore } from "@/stores/segmentStore";
 import { userStore } from "@/stores/userStore";
-import { useRoute, useRouter } from 'vue-router';
+import { useRouter } from 'vue-router';
 import BaseButton from "@/components/ui/BaseButton.vue";
 import { storeToRefs } from "pinia";
 import Multiselect from 'vue-multiselect';
@@ -62,10 +62,9 @@ const useSegmentStore = segmentStore();
 const { segments } = storeToRefs(useSegmentStore);
 
 const auth = authStore();
-const {token, error} = storeToRefs(auth)
+const {error} = storeToRefs(auth)
 
 const router = useRouter();
-const route = useRoute();
 
 const formValues = ref({
   name: '',
@@ -77,10 +76,7 @@ const formValues = ref({
 onMounted(async () => {
   if (!useUserStore.isLoaded) {
     try {
-      await Promise.all([
-        useUserStore.fetchUser(),
-        useSegmentStore.fetchSegments()
-      ]);
+      await useUserStore.fetchUser();
     } catch (e: any) {
       console.error("Erro ao carregar preferêncis:", error);
     }
@@ -89,6 +85,8 @@ onMounted(async () => {
       alert('Ative novamente sua inscrição para acompanhar o nosso conteúdo!')
     }
   }
+
+  await useSegmentStore.fetchSegments();
 });
 
 watchEffect(() => {
@@ -100,6 +98,8 @@ watchEffect(() => {
       selectedSegments: user.value.preference?.segments ?? [],
     };
   }
+
+  console.log("SEGNEBS", segments);
 });
 
 const updatePreferences = async () => {

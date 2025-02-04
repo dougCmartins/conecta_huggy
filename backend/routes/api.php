@@ -24,6 +24,6 @@ Route::post('/widget-event', [AuthController::class, 'sendToZapier'])
 Route::post('/user', [UserController::class, 'store']);
 Route::put('/user/preference', [UserController::class, 'syncUserPreferences']);
 
-Route::get('/segments', [SegmentController::class, 'index']);
-Route::get('/topics', [TopicController::class, 'index']);
-Route::get('/articles', [ArticleController::class, 'index']);
+Route::get('/segments', [SegmentController::class, 'index'])->name('segments.index');
+Route::get('/topics', [TopicController::class, 'index'])->name('topics.index');
+Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');

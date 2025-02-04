@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import axios from 'axios';
 import { UserModel } from "@/models/userModel.ts";
+import client from "@/router/client.ts";
 
 type PreferencesPayload = {
     name?: string;
@@ -21,7 +22,7 @@ export const userStore = defineStore('user', {
     actions: {
         async create(data: any): Promise<void> {
             try {
-                const response = await axios.post('http://127.0.0.1:8000/api/user', data);
+                const response = await axios.post(client("user"), data);
                 this.user = UserModel.fromObject(response.data);
             } catch (error: any) {
                 this.error = error.response?.data?.message || "Erro ao cadastrar usuário";
@@ -32,7 +33,7 @@ export const userStore = defineStore('user', {
         async fetchUser(): Promise<void> {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get("http://127.0.0.1:8000/api/user", {
+                const response = await axios.get(client("user"), {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -49,8 +50,8 @@ export const userStore = defineStore('user', {
         async syncUserPreference(data: PreferencesPayload): Promise<void> {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.put(
-                    'http://127.0.0.1:8000/api/user/preference',
+                await axios.put(
+                    `${client("user")}/preference`,
                     {
                         name: data.name,
                         email: data.email,

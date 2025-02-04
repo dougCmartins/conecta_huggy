@@ -12,4 +12,14 @@ class TopicRepository implements TopicRepositoryInterface
         return Topic::with(['user', 'category', 'posts'])
             ->paginate($perPage, ['*'], 'page', $page);
     }
+
+    public function getById($id) {
+        return Topic::find($id);
+    }
+
+    public function getByIdWithRelations($id)
+    {
+        return Topic::with(['user', 'category'])
+            ->find($id);
+    }
 }

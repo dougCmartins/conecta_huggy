@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import axios from 'axios';
+import client from "@/router/client.ts";
 
 export const authStore = defineStore('auth', {
     state: () => ({
@@ -42,7 +43,7 @@ export const authStore = defineStore('auth', {
             this.clearToken();
 
             try {
-                const response = await axios.post('http://127.0.0.1:8000/api/login', credentials);
+                const response = await axios.post(client("login"), credentials);
                 this.setToken(response.data.token || '');
             } catch (error: any) {
                 this.error = error.response?.data?.message || "Erro ao realizar login";
