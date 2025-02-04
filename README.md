@@ -19,8 +19,8 @@ Antes de iniciar, verifique se você tem as seguintes ferramentas instaladas:
 
 1. **Clone o repositório:**
    ```bash
-   git clone https://github.com/usuario/conecta-huggy.git
-   cd conecta-huggy
+   git clone https://github.com/usuario/conecta_huggy.git
+   cd conecta_huggy
    ```
 
 2. **Instale as dependências do backend (Laravel):**
