@@ -2,15 +2,17 @@
 
 namespace Database\Factories;
 
-use App\Models\Category;
-use App\Models\User;
+use Domain\Content\Models\Category;
+use Domain\Content\Models\Topic;
+use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Topic>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Content\Models\Topic>
  */
 class TopicFactory extends Factory
 {
+    protected $model = Topic::class;
     /**
      * Define the model's default state.
      *

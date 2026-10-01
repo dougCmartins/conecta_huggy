@@ -35,4 +35,10 @@ return [
         ],
     ],
 
+    'zapier' => [
+        'webhook_url' => env('ZAPIER_WEBHOOK_URL'),
+        'campaign_id' => env('ZAPIER_CAMPAIGN_ID'),
+        'lead_source' => env('ZAPIER_LEAD_SOURCE', 'Teste'),
+    ],
+
 ];

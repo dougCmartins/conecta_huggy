@@ -2,13 +2,15 @@
 
 namespace Database\Factories;
 
+use Domain\Segment\Models\Segment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Segment>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Segment\Models\Segment>
  */
 class SegmentFactory extends Factory
 {
+    protected $model = Segment::class;
     /**
      * Define the model's default state.
      *

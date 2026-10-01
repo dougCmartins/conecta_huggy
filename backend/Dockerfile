@@ -1,30 +1,18 @@
-# Usa a imagem oficial do PHP com suporte ao Laravel
-FROM php:8.2-fpm
+FROM php:8.2-cli
 
-# Instala dependências necessárias
-RUN apt-get update && apt-get install -y \
-    git unzip curl libpng-dev libjpeg-dev libfreetype6-dev \
-    && docker-php-ext-install pdo_mysql gd
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git unzip libzip-dev \
+    && docker-php-ext-install pdo_mysql zip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Instala o Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
-# Configura diretório da aplicação
-WORKDIR /var/www
+WORKDIR /var/www/html
 
-# Copia os arquivos do Laravel
-COPY . .
+COPY . /var/www/html
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
-# Instala as dependências do Laravel
-RUN composer install --no-dev --optimize-autoloader
+EXPOSE 8085
 
-# Garante que o nginx.conf está sendo copiado corretamente
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Permissões e configurações
-RUN chown -R www-data:www-data /var/www/storage /var/www/bootstrap/cache
-
-# Expõe a porta do PHP-FPM
-EXPOSE 9000
-
-CMD ["php-fpm"]
+ENTRYPOINT ["entrypoint.sh"]

@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Article;
-use App\Models\Category;
-use App\Models\Segment;
-use App\Models\User;
+use Domain\Content\Models\Category;
+use Domain\Content\Models\Article;
+use Domain\Segment\Models\Segment;
+use Domain\User\Models\User;
 use Illuminate\Database\Seeder;
 
 class ArticleSeeder extends Seeder

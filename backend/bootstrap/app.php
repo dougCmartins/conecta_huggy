@@ -1,8 +1,10 @@
 <?php
 
+use Domain\Shared\Exceptions\DomainException;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Request;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,5 +17,15 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        $exceptions->render(function (DomainException $exception, Request $request) {
+            if ($request->is('api/*') || $request->expectsJson()) {
+                return response()->json([
+                    'data' => null,
+                    'message' => $exception->getMessage(),
+                    'code' => $exception->getErrorCode(),
+                    'status_code' => $exception->getHttpStatus(),
+                    'errors' => [],
+                ], $exception->getHttpStatus());
+            }
+        });
     })->create();

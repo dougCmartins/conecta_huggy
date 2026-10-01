@@ -1,29 +1,6 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\{
-    ArticleController,
-    AuthController,
-    UserController,
-    SegmentController,
-    TopicController
-};
-
-Route::get('/user', [UserController::class, 'getUser'])
-    ->middleware('auth:sanctum');
-
-Route::put('/users/{user}', [UserController::class, 'update'])
-    ->middleware('auth:sanctum');
-Route::patch('/users/{user}', [UserController::class, 'update'])
-    ->middleware('auth:sanctum');
-
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/widget-event', [AuthController::class, 'sendToZapier'])
-    ->middleware('auth:sanctum');
-
-Route::post('/user', [UserController::class, 'store']);
-Route::put('/user/preference', [UserController::class, 'syncUserPreferences']);
-
-Route::get('/segments', [SegmentController::class, 'index'])->name('segments.index');
-Route::get('/topics', [TopicController::class, 'index'])->name('topics.index');
-Route::get('/articles', [ArticleController::class, 'index'])->name('articles.index');
+require base_path('src/Domain/Segment/Routes/api.php');
+require base_path('src/Domain/Content/Routes/api.php');
+require base_path('src/Domain/Auth/Routes/api.php');
+require base_path('src/Domain/User/Routes/api.php');

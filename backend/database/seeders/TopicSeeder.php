@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Category;
-use App\Models\Post;
-use App\Models\Topic;
-use App\Models\User;
+use Domain\Content\Models\Category;
+use Domain\Content\Models\Post;
+use Domain\Content\Models\Topic;
+use Domain\User\Models\User;
 use Illuminate\Database\Seeder;
 
 class TopicSeeder extends Seeder

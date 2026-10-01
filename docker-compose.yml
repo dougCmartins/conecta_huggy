@@ -1,55 +1,48 @@
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    ports:
-      - "8080:80"
-    depends_on:
-      - backend
-    networks:
-      - app-network
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "9001:9000"
-    volumes:
-      - ./backend:/var/www
+  mysql:
+    image: mysql:8.0
     environment:
-      - APP_ENV=local
-      - APP_KEY=base64:random-key
-      - APP_DEBUG=true
-      - APP_URL=http://127.0.0.1:8000
-      - DB_CONNECTION=mysql
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_DATABASE=conecta-huggy
-      - DB_USERNAME=root
-      - DB_PASSWORD=root
-    depends_on:
-      - db
-    networks:
-      - app-network
-
-  db:
-    image: mysql:8
-    restart: always
-    environment:
-      MYSQL_DATABASE: conecta-huggy
+      MYSQL_DATABASE: conecta_huggy
+      MYSQL_USER: conecta
+      MYSQL_PASSWORD: secret
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
-      - db_data:/var/lib/mysql
-    networks:
-      - app-network
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-proot"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
 
-networks:
-  app-network:
-    driver: bridge
+  backend:
+    build: ./backend
+    ports:
+      - "8085:8085"
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: conecta_huggy
+      DB_USERNAME: conecta
+      DB_PASSWORD: secret
+    volumes:
+      - ./backend:/var/www/html
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+    volumes:
+      - ./frontend:/app
+    depends_on:
+      - backend
 
 volumes:
-  db_data:
+  mysql_data:

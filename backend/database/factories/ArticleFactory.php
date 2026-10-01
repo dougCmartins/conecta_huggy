@@ -2,14 +2,16 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
+use Domain\Content\Models\Article;
+use Domain\User\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Article>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\Domain\Content\Models\Article>
  */
 class ArticleFactory extends Factory
 {
+    protected $model = Article::class;
     /**
      * Define the model's default state.
      *

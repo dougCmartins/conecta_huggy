@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\Segment;
+use Domain\Segment\Models\Segment;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
