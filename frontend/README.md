@@ -2,6 +2,12 @@
 
 Interface em Vue 3, TypeScript, Vite e Pinia. O ecrã lê a API em `http://127.0.0.1:8085/api`.
 
+## Layout
+
+Landing em `/guest`.
+
+![Layout da landing Conecta Huggy](docs/guest-layout.jpg)
+
 ## Subir
 
 Na raiz do repositório:
