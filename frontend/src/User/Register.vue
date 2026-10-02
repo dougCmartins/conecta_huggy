@@ -139,9 +139,12 @@ const onSubmit = handleSubmit(async (values) => {
 .login {
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
   align-items: center;
+  box-sizing: border-box;
   min-height: 100vh;
+  min-height: 100dvh;
+  padding-block: var(--space-48);
+  padding-inline: var(--space-24);
   background: var(--page-gradient);
 
   h1 {
@@ -154,9 +157,9 @@ const onSubmit = handleSubmit(async (values) => {
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
-    max-width: 420px;
-    width: min(420px, calc(100% - var(--space-48)));
-    margin: var(--space-48) var(--space-24);
+    width: min(420px, 100%);
+    margin-block: auto;
+    margin-inline: auto;
 
   }
 
