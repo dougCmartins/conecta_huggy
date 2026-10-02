@@ -15,6 +15,44 @@ describe("Topic Store", () => {
         const store = topicStore();
         expect(store.topics).toEqual([]);
         expect(store.error).toBe('');
+        expect(store.loading).toBe(false);
+    });
+
+    it("Deve marcar loading enquanto a lista está vazia", async () => {
+        const store = topicStore();
+        let resolveRequest: (value: { data: never[] }) => void = () => {};
+        const pending = new Promise<{ data: never[] }>((resolve) => {
+            resolveRequest = resolve;
+        });
+
+        (axios.get as any).mockReturnValue(pending);
+
+        const request = store.fetchTopics();
+        expect(store.loading).toBe(true);
+
+        resolveRequest({ data: [] });
+        await request;
+
+        expect(store.loading).toBe(false);
+    });
+
+    it("Deve manter loading falso quando a lista já tem tópicos", async () => {
+        const store = topicStore();
+        store.topics = [TopicModel.fromObject({ id: 1, title: 'Já carregado' })];
+
+        (axios.get as any).mockResolvedValue({
+            data: [{ id: 2, title: 'Atualizado', author_name: 'Test' }],
+        });
+
+        const request = store.fetchTopics();
+        expect(store.loading).toBe(false);
+        expect(store.topics).toHaveLength(1);
+
+        await request;
+
+        expect(store.loading).toBe(false);
+        expect(store.topics).toHaveLength(1);
+        expect(store.topics[0].title).toBe('Atualizado');
     });
 
     it("Deve preencher a store ao buscar topicos com sucesso", async () => {
@@ -42,6 +80,7 @@ describe("Topic Store", () => {
         expect(store.topics[0].authorName).toBe('Test');
         expect(store.topics[0].image).toBe("topic-1.jpg");
         expect(store.error).toBe("");
+        expect(store.loading).toBe(false);
     });
 
     it("Deve capturar erro ao falhar na requisição", async () => {
@@ -53,5 +92,6 @@ describe("Topic Store", () => {
 
         expect(store.error).toBe("Erro na API");
         expect(store.topics).toEqual([]);
+        expect(store.loading).toBe(false);
     });
 });

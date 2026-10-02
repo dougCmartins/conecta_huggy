@@ -13,9 +13,9 @@ header {
   position: sticky;
   top: 0;
   width: 100%;
-  padding: 8px 4vmin;
-  background-color: #ffffff;
-  box-shadow: 2px 9px 49px -17px rgba(0,0,0,0.3);
+  padding: var(--space-24) 0;
+  background-color: var(--surface-card);
+  border-bottom: 1px solid var(--border-soft);
   z-index: 10;
 }
 </style>

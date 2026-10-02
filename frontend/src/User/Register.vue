@@ -1,9 +1,7 @@
 <template>
   <div class="login">
     <div class="login--content-form">
-      <div class="login--content-form-text">
-        <img src="../assets/img/simbolo.svg" :alt="`image ${formModule.title}`">
-      </div>
+      <h1 class="wordmark">Conecta Huggy</h1>
       <form @submit.prevent="handleUpdate">
         <div class="form">
           <div class="form-item">
@@ -32,8 +30,12 @@
             />
           </div>
           <div class="form-item--button">
-            <base-button v-if="segments" type="submit" :text="formModule.button" variant="default-outline" />
+            <base-button v-if="segments" type="submit" :text="formModule.button" variant="default" />
           </div>
+          <p class="switch-account">
+            Já tens conta?
+            <router-link :to="{ name: 'login' }">Entra</router-link>
+          </p>
           <p v-if="auth.error" class="error">{{ auth.error }}</p>
         </div>
       </form>
@@ -66,7 +68,7 @@ const useUserStore = userStore();
 const router = useRouter();
 
 const formModule = computed(() => {
-  let item = { title: 'Registro', button: 'Registrar' };
+  let item = { title: 'Registo', button: 'Registar' };
   return item
 });
 
@@ -97,89 +99,115 @@ const handleUpdate = async () => {
 .login {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   min-height: 100vh;
-  background: url("@/assets/img/background-2.jpg") center center no-repeat;
-  background-size: cover;
+  background: var(--page-gradient);
 
   h1 {
     color: var(--vt-c-text-dark-4);
   }
 
   &--content-form {
-    background-color: var(--vt-c-white);
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 2px 9px 49px -17px rgba(0, 0, 0, 0.3);
-    max-width: 400px;
-    width: 100%;
-    margin: 3rem;
+    background-color: var(--surface-card);
+    padding: var(--space-32);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    max-width: 420px;
+    width: min(420px, calc(100% - var(--space-48)));
+    margin: var(--space-48) var(--space-24);
 
-    &-text {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 4px;
-      margin-bottom: 10px;
+  }
 
-      img {
-        width: 100%;
-        height: auto;
-        max-width: 30px;
-        object-fit: cover;
-      }
-    }
+  .wordmark {
+    margin: 0 0 var(--space-24);
+    font-size: 28px;
+    text-align: center;
+    color: var(--text-primary);
   }
 
   .form {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--space-24);
 
     &-item {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: var(--space-8);
 
       &--button {
         display: block;
         width: 100%;
-        text-align: center;
-        margin-top: 1rem;
-        padding-top: 2rem;
-        border-top: 1px solid var(--vt-c-text-light-3)
+
+        .base-button {
+          width: 100%;
+        }
       }
     }
 
     input, select {
-      padding: 0.75rem;
-      border: 1px solid var(--vt-c-text-light-3);
-      border-radius: 8px;
-      font-size: 12px;
+      min-height: 44px;
+      padding: var(--space-12) var(--space-16);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-field);
+      font-size: 16px;
       width: 100%;
       box-sizing: border-box;
       font-family: 'Poppins', 'Source Sans Pro', sans-serif;
-      color: var(--vt-c-text-dark-3);
+      color: var(--text-primary);
       overflow: hidden;
 
       &:focus {
         outline: none;
-        border-color: var(--vt-primary);
+        border-color: var(--vt-c-text-brand-1);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--vt-c-text-brand-1);
+        outline-offset: 3px;
+        border-color: var(--vt-c-text-brand-1);
       }
     }
 
     label {
-      color: var(--vt-c-text-dark-3);
+      color: var(--text-primary);
+      font-size: 14px;
       font-weight: 500;
+    }
+
+    :deep(.multiselect__tags) {
+      min-height: 44px;
+      padding: var(--space-8) var(--space-16);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-field);
+      font-size: 16px;
+    }
+
+    :deep(.multiselect__input),
+    :deep(.multiselect__single) {
+      font-size: 16px;
+      font-family: 'Poppins', 'Source Sans Pro', sans-serif;
     }
   }
 }
 
+.switch-account {
+  margin: 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+
+  a {
+    color: var(--vt-c-text-brand-1);
+    font-weight: 600;
+  }
+}
+
 .error {
-  color: red;
-  margin-top: 10px;
+  color: var(--color-error);
+  margin: 0;
   text-align: center;
 }
 </style>

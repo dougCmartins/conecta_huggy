@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conecta Huggy — registo v2 (mockup)</title>
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=poppins:400,500,600,700">
+  <style>
+    /*
+      Decisões deste ficheiro (também em improvement-plan.md):
+      - Mesma família do login-v2: card 420px, raio 20px, sombra
+        0 8px 32px rgba(22, 16, 40, 0.06), padding 32px, Poppins,
+        gradiente #F4F2FC → #FFEFF7, botão pill #E00060, hover #D01060.
+      - O background-2.jpg e o símbolo de 30px saem.
+      - Ordem: Nome, E-mail, Senha, Confirmação de senha, seguimentos,
+        checkbox, botão, link. Os rótulos com dois-pontos seguem Register.vue.
+      - O botão da app diz "Registrar". Esta prova usa "Registar", como pedido.
+      - "Confirmação de senha" não existe em RegisterUserData. A regra
+        mostrada (as duas senhas iguais) é só desta prova.
+      - "Ativar minha inscrição" está em Preferences.vue, não no registo.
+        O teste de registo cria o utilizador com is_subscribed true, por isso
+        a caixa começa marcada e não tem erro próprio.
+      - Seguimentos: as 3 descrições do SegmentSeeder. O controle é um
+        select multiple nativo. A app usa vue-multiselect. O texto de ajuda
+        é o placeholder actual: "Selecione um ou mais seguimentos".
+      - Erros por campo são cópia desta prova. A store só guarda a frase
+        única "Erro ao cadastrar usuário". As regras reais usadas aqui:
+        nome obrigatório, e-mail válido, senha com mínimo de 6, pelo menos
+        1 seguimento. Amostra do estado de erro: senha "12345" (5) e
+        confirmação "123456" (6). 5 e 6 não coincidem. Seguimentos: 0 de 3.
+      - Sucesso: "Conta criada." Mostra 2 de 3 seguimentos
+        (Canal de Relacionamento e Canal de Atendimento). 2 + 1 = 3.
+        Não usa #54D271. A app, depois de criar, manda para /login.
+      - O card não fica centrado na vertical, ao contrário do login:
+        o formulário é mais alto do que a viewport com a barra de prova.
+      - A carregar desactiva o botão e marca aria-busy. O texto fica "Registar".
+      - O estado Foco desenha o anel no nome. O anel de teclado continua
+        em :focus-visible.
+      - Breakpoint 768px. A barra de estados não vai para o produto.
+    */
+
+    :root {
+      --surface: #F4F2FC;
+      --surface-veil: #FFEFF7;
+      --surface-card: #FFFFFF;
+      --border: #E4E0F0;
+      --text-primary: #161222;
+      --text-on-accent: #FFFFFF;
+      --text-muted: #6E6878;
+      --accent: #E00060;
+      --accent-pressed: #D01060;
+      --color-error: #7A1F33;
+      --shadow-card: 0 8px 32px rgba(22, 16, 40, 0.06);
+      --radius-card: 20px;
+      --radius-field: 12px;
+      --radius-pill: 999px;
+      --space-8: 8px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-24: 24px;
+      --space-32: 32px;
+      --space-48: 48px;
+      --font: "Poppins", "Source Sans Pro", sans-serif;
+      --card: 420px;
+      --bp: 768px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text-primary);
+      background: linear-gradient(165deg, var(--surface) 0%, #F2F1FF 46%, var(--surface-veil) 100%);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dev-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      gap: var(--space-12);
+      padding: var(--space-12) var(--space-24);
+      background: var(--text-primary);
+      color: var(--text-on-accent);
+    }
+
+    .dev-chrome p,
+    .dev-chrome summary {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .dev-chrome summary {
+      cursor: pointer;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .dev-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+    }
+
+    .dev-chrome button {
+      min-height: 44px;
+      padding: var(--space-8) var(--space-16);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .dev-chrome button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .dev-chrome details ul {
+      margin: var(--space-8) 0 0;
+      padding-left: 1.2rem;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .stage {
+      display: grid;
+      justify-items: center;
+      align-items: start;
+      padding: var(--space-48) var(--space-24) var(--space-48);
+    }
+
+    .card {
+      width: min(var(--card), 100%);
+      padding: var(--space-32);
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+    }
+
+    .wordmark {
+      margin: 0 0 var(--space-32);
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+
+    label,
+    .hint {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 44px;
+      padding: var(--space-12) var(--space-16);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-field);
+      background: var(--surface-card);
+      color: var(--text-primary);
+      font: inherit;
+      font-size: 16px;
+    }
+
+    select {
+      min-height: 132px;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    body[data-state="focus"] #name {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-color: var(--accent);
+    }
+
+    input[aria-invalid="true"],
+    select[aria-invalid="true"] {
+      border-color: var(--color-error);
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: var(--space-12);
+      min-height: 44px;
+    }
+
+    .check input {
+      width: 20px;
+      height: 20px;
+      min-height: 20px;
+      padding: 0;
+      accent-color: var(--accent);
+    }
+
+    .check label {
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .field-error {
+      display: none;
+      margin: 0;
+      color: var(--color-error);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    body[data-state="error"] .field-error {
+      display: block;
+    }
+
+    .submit {
+      width: 100%;
+      min-height: 44px;
+      padding: var(--space-12) var(--space-24);
+      border: 0;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .submit:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .success {
+      display: none;
+      margin: 0 0 var(--space-16);
+    }
+
+    body[data-state="success"] .success {
+      display: block;
+    }
+
+    body[data-state="success"] form {
+      display: none;
+    }
+
+    .success p {
+      margin: 0 0 var(--space-12);
+    }
+
+    .success ul {
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+
+    .login-link {
+      margin: var(--space-16) 0 0;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .login-link a {
+      color: var(--accent);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+    }
+
+    @media (hover: hover) {
+      .submit:hover:not(:disabled) {
+        background: var(--accent-pressed);
+      }
+
+      .login-link a:hover {
+        text-decoration: underline;
+      }
+
+      .dev-chrome button:hover {
+        border-color: var(--text-on-accent);
+      }
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .dev-chrome a:focus-visible,
+    .dev-chrome button:focus-visible,
+    .dev-chrome summary:focus-visible {
+      outline-color: var(--text-on-accent);
+    }
+
+    @media (max-width: 768px) {
+      .stage {
+        padding: var(--space-32) var(--space-24) var(--space-48);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body data-state="normal">
+  <div class="dev-chrome">
+    <p>Prova de estados. Esta barra não faz parte do produto.</p>
+    <div class="dev-row" role="toolbar" aria-label="Estados do registo">
+      <button type="button" data-set-state="normal" aria-pressed="true">Normal</button>
+      <button type="button" data-set-state="loading" aria-pressed="false">A carregar</button>
+      <button type="button" data-set-state="error" aria-pressed="false">Erro</button>
+      <button type="button" data-set-state="success" aria-pressed="false">Sucesso</button>
+      <button type="button" data-set-state="focus" aria-pressed="false">Foco</button>
+    </div>
+    <details>
+      <summary>Decisões deste ficheiro</summary>
+      <ul>
+        <li>Mesmo card e tokens do login. Fundo em gradiente, sem background-2.jpg.</li>
+        <li>Confirmação de senha e a caixa de inscrição não estão no registo actual.</li>
+        <li>Três seguimentos do seed. No erro, 0 de 3. No sucesso, 2 de 3. 2 + 1 = 3.</li>
+        <li>A senha de exemplo tem 5 caracteres e a confirmação tem 6. O mínimo real é 6.</li>
+        <li>O botão da app diz "Registrar". Aqui o texto é "Registar".</li>
+      </ul>
+    </details>
+  </div>
+
+  <div class="stage">
+    <section class="card" aria-labelledby="titulo-registo">
+      <h1 class="wordmark" id="titulo-registo">Conecta Huggy</h1>
+      <div class="success" id="success-panel">
+        <p>Conta criada.</p>
+        <p>Inscrição ativa, com <span class="num">2</span> de <span class="num">3</span> seguimentos:</p>
+        <ul>
+          <li>Canal de Relacionamento</li>
+          <li>Canal de Atendimento</li>
+        </ul>
+      </div>
+      <form id="register-form" novalidate>
+        <div class="field">
+          <label for="name">Nome:</label>
+          <input id="name" name="name" type="text" autocomplete="name" required>
+          <p class="field-error" id="name-error">Indica o nome.</p>
+        </div>
+        <div class="field">
+          <label for="email">E-mail:</label>
+          <input id="email" name="email" type="email" autocomplete="email" required>
+          <p class="field-error" id="email-error">Indica um e-mail válido.</p>
+        </div>
+        <div class="field">
+          <label for="password">Senha:</label>
+          <input id="password" name="password" type="password" autocomplete="new-password" required minlength="6">
+          <p class="field-error" id="password-error">A senha precisa de pelo menos <span class="num">6</span> caracteres.</p>
+        </div>
+        <div class="field">
+          <label for="password-confirm">Confirmação de senha:</label>
+          <input id="password-confirm" name="password_confirm" type="password" autocomplete="new-password" required>
+          <p class="field-error" id="confirm-error">A confirmação não coincide com a senha.</p>
+        </div>
+        <div class="field">
+          <label for="segments">Seguimentos de interesse:</label>
+          <p class="hint" id="segments-hint">Selecione um ou mais seguimentos</p>
+          <select id="segments" name="segment_ids" multiple required size="3" aria-describedby="segments-hint">
+            <option value="customer_success">Canal de Relacionamento</option>
+            <option value="atendimento">Canal de Atendimento</option>
+            <option value="marketing">Canal de Vendas</option>
+          </select>
+          <p class="field-error" id="segments-error">Escolhe pelo menos um seguimento. Estão <span class="num">0</span> de <span class="num">3</span>.</p>
+        </div>
+        <div class="check">
+          <input id="subscribed" name="is_subscribed" type="checkbox" checked>
+          <label for="subscribed">Ativar minha inscrição</label>
+        </div>
+        <button class="submit" id="submit" type="submit">Registar</button>
+      </form>
+      <p class="login-link"><a href="/login">Já tens conta? Entra</a></p>
+    </section>
+  </div>
+
+  <script>
+    const form = document.getElementById("register-form");
+    const submit = document.getElementById("submit");
+    const nameInput = document.getElementById("name");
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("password-confirm");
+    const segments = document.getElementById("segments");
+    const subscribed = document.getElementById("subscribed");
+    const buttons = document.querySelectorAll("[data-set-state]");
+
+    const fields = [
+      [nameInput, "name-error"],
+      [email, "email-error"],
+      [password, "password-error"],
+      [confirmPassword, "confirm-error"],
+      [segments, "segments-error"],
+    ];
+
+    function clearInvalid() {
+      fields.forEach(([field]) => {
+        field.removeAttribute("aria-invalid");
+        field.removeAttribute("aria-describedby");
+      });
+      segments.setAttribute("aria-describedby", "segments-hint");
+    }
+
+    function resetForm() {
+      form.reset();
+      subscribed.checked = true;
+      clearInvalid();
+    }
+
+    function showInvalidSample() {
+      nameInput.value = "";
+      email.value = "ada@";
+      password.value = "12345";
+      confirmPassword.value = "123456";
+      Array.from(segments.options).forEach((option) => {
+        option.selected = false;
+      });
+      subscribed.checked = true;
+      fields.forEach(([field, errorId]) => {
+        field.setAttribute("aria-invalid", "true");
+        const described = field === segments ? "segments-hint " + errorId : errorId;
+        field.setAttribute("aria-describedby", described);
+      });
+    }
+
+    function setState(state) {
+      document.body.dataset.state = state;
+      const loading = state === "loading";
+      form.setAttribute("aria-busy", loading ? "true" : "false");
+      submit.disabled = loading;
+
+      if (state === "error") {
+        showInvalidSample();
+      } else {
+        clearInvalid();
+        if (state === "normal" || state === "focus") {
+          resetForm();
+        }
+      }
+
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.setState === state ? "true" : "false");
+      });
+
+      if (state === "focus") {
+        nameInput.focus();
+      }
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setState(button.dataset.setState));
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conecta Huggy — artigo v2 (mockup)</title>
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=poppins:400,500,600,700">
+  <style>
+    /*
+      Decisões deste ficheiro (também em improvement-plan.md):
+      - Ecrã de leitura em /articles. Cabeçalho da área autenticada.
+        A coluna do artigo tem 720px, mais estreita que o fórum (1200px).
+      - A captura actual (banner, notícias, fotos) não entra.
+        Articles.vue também tem banner.png e Noticies. Ficam de fora.
+      - O breadcrumb pedido é Fórum / Atendimento Digital / Artigo.
+        Fórum aponta para /forum. A categoria não tem rota, por isso
+        não é link. "Artigo" é a página actual.
+        A nav marca Artigos, porque a rota é /articles.
+      - O artigo é "Ferramentas de Atendimento Digital", o único da
+        categoria com lista. A app abre articles[0],
+        "Construindo Relacionamentos Duradouros" (Customer Success).
+      - Corpo só com o seed: o subtítulo como parágrafo, h2
+        "Top Ferramentas" e a lista de 3. Não há h3 nem mais parágrafos
+        no seed, por isso não se inventam.
+      - Palavras do corpo: 14. A 200 por minuto, fica abaixo de 1 minuto.
+        A meta diz "menos de 1 min". Não há tempo de leitura na app.
+      - Data: 01 de outubro de 2026, a mesma byline já aplicada no fórum,
+        no formato de getFormattedDate().
+      - Relacionados: os outros 2 de Atendimento Digital. 2 + 1 = 3.
+        A app lista slice(1) até perPage 7 (1 + 6).
+      - Capa em placeholder, raio 20px. Autora Ana, sem biografia no seed.
+      - Erro: "Não foi possível carregar os artigos".
+      - Abaixo de 768px a coluna usa a largura da página menos 48px
+        e os cards relacionados empilham.
+      - A barra de estados não vai para o produto.
+    */
+
+    :root {
+      --surface: #F4F2FC;
+      --surface-veil: #FFEFF7;
+      --surface-card: #FFFFFF;
+      --surface-dark: #120A22;
+      --border: #E4E0F0;
+      --text-primary: #161222;
+      --text-on-accent: #FFFFFF;
+      --text-muted: #6E6878;
+      --accent: #E00060;
+      --accent-secondary: #A99BF2;
+      --color-error: #7A1F33;
+      --shadow-card: 0 8px 32px rgba(22, 16, 40, 0.06);
+      --radius-card: 20px;
+      --radius-pill: 999px;
+      --space-8: 8px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-24: 24px;
+      --space-32: 32px;
+      --space-48: 48px;
+      --space-section: 96px;
+      --font: "Poppins", "Source Sans Pro", sans-serif;
+      --shell: 1200px;
+      --reading: 720px;
+      --bp: 768px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-primary);
+      background: linear-gradient(165deg, var(--surface) 0%, #F2F1FF 46%, var(--surface-veil) 100%);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dev-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      gap: var(--space-12);
+      padding: var(--space-12) var(--space-24);
+      background: var(--text-primary);
+      color: var(--text-on-accent);
+    }
+
+    .dev-chrome p,
+    .dev-chrome summary {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .dev-chrome summary {
+      cursor: pointer;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .dev-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+    }
+
+    .dev-chrome button {
+      min-height: 44px;
+      padding: var(--space-8) var(--space-16);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .dev-chrome button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .dev-chrome details ul {
+      margin: var(--space-8) 0 0;
+      padding-left: 1.2rem;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .shell {
+      width: min(var(--shell), calc(100% - 2 * var(--space-48)));
+      margin-inline: auto;
+    }
+
+    .site-header {
+      padding-block: var(--space-24);
+    }
+
+    .site-header .shell,
+    .nav-list {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-24);
+    }
+
+    .wordmark {
+      margin: 0;
+      line-height: 0;
+    }
+
+    .wordmark a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .wordmark img {
+      display: block;
+      height: 28px;
+      width: auto;
+    }
+
+    .nav-list {
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .nav-list a,
+    .nav-list button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: var(--space-8) var(--space-12);
+      border: 0;
+      background: transparent;
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+    }
+
+    .nav-list a[aria-current="page"] {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      padding-bottom: var(--space-section);
+    }
+
+    .reading {
+      width: min(var(--reading), 100%);
+      margin-inline: auto;
+    }
+
+    .crumbs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+      align-items: center;
+      margin: 0 0 var(--space-32);
+      padding: 0;
+      list-style: none;
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .crumbs a {
+      color: var(--text-muted);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+    }
+
+    .crumbs [aria-current="page"] {
+      color: var(--text-primary);
+    }
+
+    .article-title {
+      margin: 0 0 var(--space-16);
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8) var(--space-16);
+      align-items: center;
+      margin: 0 0 var(--space-32);
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .cover {
+      display: grid;
+      place-items: center;
+      min-height: 320px;
+      margin-bottom: var(--space-48);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      background: linear-gradient(160deg, var(--surface) 0%, var(--surface-veil) 100%);
+    }
+
+    .disc {
+      display: grid;
+      place-items: center;
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--text-on-accent);
+    }
+
+    .disc svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .disc--sm {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+      font-weight: 700;
+    }
+
+    .disc--sm svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .prose p {
+      margin: 0 0 var(--space-16);
+    }
+
+    .prose h2 {
+      margin: var(--space-32) 0 var(--space-12);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .prose ul {
+      margin: 0 0 var(--space-16);
+      padding-left: 1.2rem;
+    }
+
+    .prose li + li {
+      margin-top: var(--space-8);
+    }
+
+    .author {
+      display: flex;
+      align-items: center;
+      gap: var(--space-16);
+      margin-top: var(--space-48);
+      padding: var(--space-24);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      background: var(--surface-card);
+      box-shadow: var(--shadow-card);
+    }
+
+    .author p {
+      margin: 0;
+    }
+
+    .author small {
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .related {
+      margin-top: var(--space-section);
+    }
+
+    .related h2 {
+      margin: 0 0 var(--space-24);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .related-list {
+      display: grid;
+      gap: var(--space-24);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .card {
+      display: grid;
+      grid-template-columns: 140px minmax(0, 1fr);
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .plate {
+      display: grid;
+      place-items: center;
+      min-height: 120px;
+      background: var(--surface);
+    }
+
+    .card .copy {
+      padding: var(--space-24);
+    }
+
+    .card h3 {
+      margin: 0 0 var(--space-8);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--text-muted);
+    }
+
+    .notice {
+      display: none;
+      margin: 0 auto;
+      width: min(var(--reading), 100%);
+      padding: var(--space-32);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      background: var(--surface-card);
+    }
+
+    .notice--error {
+      border-color: var(--color-error);
+      color: var(--color-error);
+    }
+
+    .only-loading {
+      display: none;
+      width: min(var(--reading), 100%);
+      margin-inline: auto;
+      gap: var(--space-16);
+    }
+
+    .bone {
+      height: 16px;
+      border-radius: var(--radius-pill);
+      background: var(--border);
+    }
+
+    .bone-block {
+      height: 240px;
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid var(--border);
+    }
+
+    body[data-state="ready"] .only-empty,
+    body[data-state="ready"] .only-loading,
+    body[data-state="ready"] .only-error,
+    body[data-state="empty"] .only-ready,
+    body[data-state="empty"] .only-loading,
+    body[data-state="empty"] .only-error,
+    body[data-state="loading"] .only-ready,
+    body[data-state="loading"] .only-empty,
+    body[data-state="loading"] .only-error,
+    body[data-state="error"] .only-ready,
+    body[data-state="error"] .only-empty,
+    body[data-state="error"] .only-loading {
+      display: none;
+    }
+
+    body[data-state="empty"] .only-empty,
+    body[data-state="error"] .only-error,
+    body[data-state="loading"] .only-loading {
+      display: grid;
+    }
+
+    .site-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      background: var(--surface-card);
+    }
+
+    .site-footer .shell {
+      display: flex;
+      justify-content: center;
+      padding-block: var(--space-32);
+    }
+
+    .site-footer p {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    @media (hover: hover) {
+      .card:hover {
+        border-color: var(--accent-secondary);
+      }
+
+      .crumbs a:hover,
+      .nav-list a:hover,
+      .nav-list button:hover,
+      .wordmark a:hover {
+        color: var(--text-primary);
+      }
+
+      .dev-chrome button:hover {
+        border-color: var(--text-on-accent);
+      }
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .dev-chrome button:focus-visible,
+    .dev-chrome summary:focus-visible {
+      outline-color: var(--text-on-accent);
+    }
+
+    @media (max-width: 768px) {
+      .shell {
+        width: min(var(--shell), calc(100% - 2 * var(--space-24)));
+      }
+
+      .site-header .shell {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .nav-list {
+        justify-content: flex-start;
+      }
+
+      .article-title {
+        font-size: 32px;
+      }
+
+      .card {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body data-state="ready">
+  <div class="dev-chrome">
+    <p>Prova de estados. Esta barra não faz parte do produto.</p>
+    <div class="dev-row" role="toolbar" aria-label="Estados do artigo">
+      <button type="button" data-set-state="ready" aria-pressed="true">Conteúdo</button>
+      <button type="button" data-set-state="empty" aria-pressed="false">Vazio</button>
+      <button type="button" data-set-state="loading" aria-pressed="false">A carregar</button>
+      <button type="button" data-set-state="error" aria-pressed="false">Erro</button>
+    </div>
+    <details>
+      <summary>Decisões deste ficheiro</summary>
+      <ul>
+        <li>Coluna de 720px. Sem banner, notícias ou fotos da captura.</li>
+        <li>Artigo de Atendimento Digital com lista. A app abre outro, de Customer Success.</li>
+        <li>14 palavras no corpo. Leitura: menos de 1 min. Data: 01 de outubro de 2026.</li>
+        <li>Relacionados: 2. Com o artigo actual, 2 + 1 = 3 na categoria.</li>
+      </ul>
+    </details>
+  </div>
+
+  <div class="page">
+    <header class="site-header">
+      <div class="shell">
+        <p class="wordmark"><a href="/"><img src="conecta-logo.svg" alt="Conecta Huggy" width="169" height="25"></a></p>
+        <nav aria-label="Secções">
+          <ul class="nav-list">
+            <li><a href="/forum">Fórum</a></li>
+            <li><a href="/articles" aria-current="page">Artigos</a></li>
+            <li><a href="/content">Conteúdos</a></li>
+            <li><a href="/preference">Preferências</a></li>
+            <li><button type="button">Sair</button></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="conteudo" aria-busy="false">
+      <div class="shell">
+        <p class="notice only-empty">Ainda não há artigos.</p>
+        <p class="notice notice--error only-error" role="alert">Não foi possível carregar os artigos.</p>
+        <div class="only-loading" aria-hidden="true">
+          <div class="bone-block"></div>
+          <div class="bone"></div>
+          <div class="bone"></div>
+        </div>
+
+        <article class="reading only-ready">
+          <nav aria-label="Percurso">
+            <ol class="crumbs">
+              <li><a href="/forum">Fórum</a></li>
+              <li aria-hidden="true">/</li>
+              <li>Atendimento Digital</li>
+              <li aria-hidden="true">/</li>
+              <li aria-current="page">Artigo</li>
+            </ol>
+          </nav>
+
+          <h1 class="article-title">Ferramentas de Atendimento Digital</h1>
+          <p class="meta">
+            <span>Por: Ana</span>
+            <span>Publicado em: <time class="num" datetime="2026-10-01">01 de outubro de 2026</time></span>
+            <span>Leitura: menos de <span class="num">1</span> min</span>
+          </p>
+
+          <div class="cover" aria-hidden="true">
+            <span class="disc">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="5" width="16" height="14" rx="2"></rect>
+                <path d="M8 15.5 11 11l2 2 1.5-1.5L18 15.5"></path>
+              </svg>
+            </span>
+          </div>
+
+          <div class="prose">
+            <p>Plataformas que transformam o atendimento.</p>
+            <h2>Top Ferramentas</h2>
+            <ul>
+              <li>Chatbots com IA</li>
+              <li>CRMs avançados</li>
+              <li>Redes sociais</li>
+            </ul>
+          </div>
+
+          <section class="author" aria-label="Autora">
+            <span class="disc disc--sm" aria-hidden="true">A</span>
+            <div>
+              <p>Ana</p>
+              <small>Por: Ana</small>
+            </div>
+          </section>
+
+          <section class="related" aria-labelledby="relacionados">
+            <h2 id="relacionados">Artigos relacionados</h2>
+            <ul class="related-list">
+              <li>
+                <article class="card">
+                  <div class="plate" aria-hidden="true">
+                    <span class="disc disc--sm">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="5" width="16" height="14" rx="2"></rect>
+                        <path d="M8 15.5 11 11l2 2 1.5-1.5L18 15.5"></path>
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="copy">
+                    <h3>A Evolução do Atendimento Digital</h3>
+                    <p>Como o digital transformou o atendimento.</p>
+                  </div>
+                </article>
+              </li>
+              <li>
+                <article class="card">
+                  <div class="plate" aria-hidden="true">
+                    <span class="disc disc--sm" style="background: var(--accent-secondary); color: var(--text-primary);">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="5" width="16" height="14" rx="2"></rect>
+                        <path d="M8 15.5 11 11l2 2 1.5-1.5L18 15.5"></path>
+                      </svg>
+                    </span>
+                  </div>
+                  <div class="copy">
+                    <h3>Humanização no Atendimento Digital</h3>
+                    <p>O toque humano em um mundo digital.</p>
+                  </div>
+                </article>
+              </li>
+            </ul>
+          </section>
+        </article>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell">
+        <p>Conecta Huggy — <span class="num">2026</span></p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const main = document.getElementById("conteudo");
+    const buttons = document.querySelectorAll("[data-set-state]");
+
+    function setState(state) {
+      document.body.dataset.state = state;
+      main.setAttribute("aria-busy", state === "loading" ? "true" : "false");
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.setState === state ? "true" : "false");
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setState(button.dataset.setState));
+    });
+  </script>
+</body>
+</html>

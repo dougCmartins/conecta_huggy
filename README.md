@@ -58,17 +58,13 @@ ZAPIER_LEAD_SOURCE=Teste
 
 ## Dados iniciais
 
-A migração sobe sozinha. Os seeders da comunidade rodam à parte, nesta ordem, porque artigo e tópico dependem do utilizador e das categorias:
+A migração sobe sozinha. Com os containers no ar, um comando preenche utilizador, categorias, segmentos, artigos e tópicos:
 
 ```bash
-docker compose exec backend php artisan db:seed --class=UserSeeder
-docker compose exec backend php artisan db:seed --class=CategorySeeder
-docker compose exec backend php artisan db:seed --class=SegmentSeeder
-docker compose exec backend php artisan db:seed --class=ArticleSeeder
-docker compose exec backend php artisan db:seed --class=TopicSeeder
+make seed
 ```
 
-`UserSeeder` grava a senha `123`. `php artisan db:seed` sem `--class` só corre o `DatabaseSeeder`, que cria um utilizador de teste e não chama os seeders acima.
+O login local fica `ana@conecta.test` / `123`. Correr `make seed` outra vez não duplica essas linhas.
 
 ## Fluxo da aplicação
 

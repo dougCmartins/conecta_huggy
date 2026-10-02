@@ -9,4 +9,7 @@
 </script>
 
 <style>
+header + main {
+  margin-top: var(--space-section);
+}
 </style>

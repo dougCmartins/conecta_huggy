@@ -1,6 +1,6 @@
 COMPOSE := $(shell docker compose version >/dev/null 2>&1 && echo docker compose || echo docker-compose)
 
-.PHONY: up down logs migrate test shell-api shell-web
+.PHONY: up down logs migrate seed test shell-api shell-web
 
 up:
 	$(COMPOSE) up --build
@@ -13,6 +13,9 @@ logs:
 
 migrate:
 	$(COMPOSE) exec backend php artisan migrate --force
+
+seed:
+	$(COMPOSE) exec backend php artisan db:seed --force
 
 test:
 	$(COMPOSE) exec backend php artisan test

@@ -15,6 +15,44 @@ describe("Article Store", () => {
         const store = articleStore();
         expect(store.articles).toEqual([]);
         expect(store.error).toBe('');
+        expect(store.loading).toBe(false);
+    });
+
+    it("Deve marcar loading enquanto a lista está vazia", async () => {
+        const store = articleStore();
+        let resolveRequest: (value: { data: never[] }) => void = () => {};
+        const pending = new Promise<{ data: never[] }>((resolve) => {
+            resolveRequest = resolve;
+        });
+
+        (axios.get as any).mockReturnValue(pending);
+
+        const request = store.fetchArticles();
+        expect(store.loading).toBe(true);
+
+        resolveRequest({ data: [] });
+        await request;
+
+        expect(store.loading).toBe(false);
+    });
+
+    it("Deve manter loading falso quando a lista já tem artigos", async () => {
+        const store = articleStore();
+        store.articles = [ArticleModel.fromObject({ id: 1, title: 'Já carregado' })];
+
+        (axios.get as any).mockResolvedValue({
+            data: [{ id: 2, title: 'Atualizado', author_name: 'Test' }],
+        });
+
+        const request = store.fetchArticles();
+        expect(store.loading).toBe(false);
+        expect(store.articles).toHaveLength(1);
+
+        await request;
+
+        expect(store.loading).toBe(false);
+        expect(store.articles).toHaveLength(1);
+        expect(store.articles[0].title).toBe('Atualizado');
     });
 
     it("Deve preencher a store ao buscar artigos com sucesso", async () => {
@@ -40,6 +78,7 @@ describe("Article Store", () => {
         expect(store.articles[0].authorName).toBe('Test');
         expect(store.articles[0].image).toBe("topic-1.jpg");
         expect(store.error).toBe("");
+        expect(store.loading).toBe(false);
     });
 
     it("Deve capturar erro ao falhar na requisição", async () => {
@@ -51,5 +90,6 @@ describe("Article Store", () => {
 
         expect(store.error).toBe("Erro na API");
         expect(store.articles).toEqual([]);
+        expect(store.loading).toBe(false);
     });
 });

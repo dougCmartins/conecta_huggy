@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conecta Huggy — fórum v2 (mockup)</title>
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=poppins:400,500,600,700">
+  <style>
+    /*
+      Decisões deste ficheiro (também em improvement-plan.md):
+      - Ecrã: /forum. Cabeçalho da área autenticada. Largura 1200px,
+        mais larga que o card de 420px. Sidebar 320px. Intervalo 48px.
+      - O tópico em destaque é o terceiro do TopicSeeder,
+        "Estratégias para Retenção de Clientes", como pedido.
+        A app mostra topics[0], "Construindo Relacionamentos Duradouros".
+      - Categoria "Marketing de Vendas" em #E00060. Subtítulo do seed:
+        "Dicas para fidelizar clientes e melhorar o relacionamento."
+      - O bloco "Fidelização" usa os dois parágrafos do seed, sem o post
+        "Este é o conteúdo do post…".
+      - A capa é um placeholder de raio 20px. Sem digital.jpg, insides.jpg
+        nem a composição da captura actual.
+      - Outros tópicos e Tópicos Recentes são o mesmo slice(1) da app:
+        os outros 2 tópicos. 2 + 1 = 3. A sidebar repete esses 2.
+        Autora de todos: Ana.
+      - created_at já é timestamp. O Topic grava-o no insert
+        (timestamps do Eloquent, activo por omissão). O seed não o passa.
+      - A byline do destaque mostra o formato de getFormattedDate():
+        dia, mês por extenso e ano. O dia desta prova é 01 de outubro
+        de 2026, o de um seed feito nesta data. Os cards ficam "por Ana",
+        como em Forum.vue, que só data o tópico em destaque.
+      - Erro: "Não foi possível carregar os tópicos", o fallback de topicStore.ts.
+      - Vazio: a app esconde o template quando não há currentTopic.
+      - Abaixo de 768px a sidebar desce para debaixo da coluna.
+        Os cards horizontais passam a uma coluna.
+      - Poppins, gradiente #F4F2FC → #FFEFF7, sombra e raios da família.
+      - A barra de estados não vai para o produto.
+    */
+
+    :root {
+      --surface: #F4F2FC;
+      --surface-veil: #FFEFF7;
+      --surface-card: #FFFFFF;
+      --surface-dark: #120A22;
+      --border: #E4E0F0;
+      --text-primary: #161222;
+      --text-on-accent: #FFFFFF;
+      --text-muted: #6E6878;
+      --accent: #E00060;
+      --accent-secondary: #A99BF2;
+      --color-error: #7A1F33;
+      --shadow-card: 0 8px 32px rgba(22, 16, 40, 0.06);
+      --radius-card: 20px;
+      --radius-pill: 999px;
+      --space-8: 8px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-24: 24px;
+      --space-32: 32px;
+      --space-48: 48px;
+      --space-section: 96px;
+      --font: "Poppins", "Source Sans Pro", sans-serif;
+      --content: 1200px;
+      --sidebar: 320px;
+      --bp: 768px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-primary);
+      background: linear-gradient(165deg, var(--surface) 0%, #F2F1FF 46%, var(--surface-veil) 100%);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+
+    .dev-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      gap: var(--space-12);
+      padding: var(--space-12) var(--space-24);
+      background: var(--text-primary);
+      color: var(--text-on-accent);
+    }
+
+    .dev-chrome p,
+    .dev-chrome summary {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .dev-chrome summary {
+      cursor: pointer;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .dev-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+    }
+
+    .dev-chrome button {
+      min-height: 44px;
+      padding: var(--space-8) var(--space-16);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .dev-chrome button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .dev-chrome details ul {
+      margin: var(--space-8) 0 0;
+      padding-left: 1.2rem;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .shell {
+      width: min(var(--content), calc(100% - 2 * var(--space-48)));
+      margin-inline: auto;
+    }
+
+    .site-header {
+      padding-block: var(--space-24);
+    }
+
+    .site-header .shell,
+    .nav-list {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-24);
+    }
+
+    .wordmark {
+      margin: 0;
+      line-height: 0;
+    }
+
+    .wordmark a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .wordmark img {
+      display: block;
+      height: 28px;
+      width: auto;
+    }
+
+    .nav-list {
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .nav-list a,
+    .nav-list button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: var(--space-8) var(--space-12);
+      border: 0;
+      background: transparent;
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+    }
+
+    .nav-list a[aria-current="page"] {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      padding-bottom: var(--space-section);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) var(--sidebar);
+      gap: var(--space-48);
+      align-items: start;
+    }
+
+    .article-title {
+      margin: 0 0 var(--space-12);
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+
+    .kicker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-12) var(--space-16);
+      align-items: baseline;
+      margin: 0 0 var(--space-32);
+    }
+
+    .kicker p {
+      margin: 0;
+      color: var(--text-muted);
+    }
+
+    .kicker .category {
+      margin: 0;
+      color: var(--accent);
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .cover {
+      display: grid;
+      place-items: center;
+      min-height: 280px;
+      margin-bottom: var(--space-32);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      background: linear-gradient(160deg, var(--surface) 0%, var(--surface-veil) 100%);
+    }
+
+    .disc {
+      display: grid;
+      place-items: center;
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--text-on-accent);
+      font-weight: 700;
+    }
+
+    .disc svg {
+      width: 32px;
+      height: 32px;
+    }
+
+    .disc--sm {
+      width: 44px;
+      height: 44px;
+      flex: 0 0 44px;
+    }
+
+    .disc--lilac {
+      background: var(--accent-secondary);
+      color: var(--text-primary);
+    }
+
+    .disc--dark {
+      background: var(--surface-dark);
+    }
+
+    .body-copy h2 {
+      margin: 0 0 var(--space-12);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .body-copy p {
+      margin: 0 0 var(--space-16);
+    }
+
+    .byline {
+      display: flex;
+      align-items: center;
+      gap: var(--space-12);
+      margin: var(--space-32) 0 var(--space-section);
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .byline-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .section-title {
+      margin: 0 0 var(--space-24);
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .h-list,
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .h-card {
+      display: grid;
+      grid-template-columns: 180px minmax(0, 1fr);
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .h-card .plate {
+      display: grid;
+      place-items: center;
+      min-height: 140px;
+      background: var(--surface);
+    }
+
+    .h-card .copy,
+    .side-card {
+      padding: var(--space-24);
+    }
+
+    .h-card h3,
+    .side-card h3 {
+      margin: 0 0 var(--space-8);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+    }
+
+    .h-card p,
+    .side-card p {
+      margin: 0;
+      color: var(--text-muted);
+    }
+
+    .mini-by {
+      display: flex;
+      align-items: center;
+      gap: var(--space-12);
+      margin-top: var(--space-16);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .side-card {
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+    }
+
+    .notice {
+      display: none;
+      margin: 0;
+      padding: var(--space-32);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      background: var(--surface-card);
+    }
+
+    .notice--error {
+      border-color: var(--color-error);
+      color: var(--color-error);
+    }
+
+    .bone {
+      height: 16px;
+      border-radius: var(--radius-pill);
+      background: var(--border);
+    }
+
+    .bone-block {
+      height: 220px;
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid var(--border);
+    }
+
+    .only-loading {
+      display: none;
+      gap: var(--space-16);
+    }
+
+    body[data-state="ready"] .only-empty,
+    body[data-state="ready"] .only-loading,
+    body[data-state="ready"] .only-error,
+    body[data-state="empty"] .only-ready,
+    body[data-state="empty"] .only-loading,
+    body[data-state="empty"] .only-error,
+    body[data-state="loading"] .only-ready,
+    body[data-state="loading"] .only-empty,
+    body[data-state="loading"] .only-error,
+    body[data-state="error"] .only-ready,
+    body[data-state="error"] .only-empty,
+    body[data-state="error"] .only-loading {
+      display: none;
+    }
+
+    body[data-state="empty"] .only-empty,
+    body[data-state="error"] .only-error,
+    body[data-state="loading"] .only-loading {
+      display: grid;
+    }
+
+    .site-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      background: var(--surface-card);
+    }
+
+    .site-footer .shell {
+      display: flex;
+      justify-content: center;
+      padding-block: var(--space-32);
+    }
+
+    .site-footer p {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    @media (hover: hover) {
+      .h-card:hover,
+      .side-card:hover {
+        border-color: var(--accent-secondary);
+      }
+
+      .nav-list a:hover,
+      .nav-list button:hover,
+      .wordmark a:hover {
+        color: var(--text-primary);
+      }
+
+      .dev-chrome button:hover {
+        border-color: var(--text-on-accent);
+      }
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .dev-chrome button:focus-visible,
+    .dev-chrome summary:focus-visible {
+      outline-color: var(--text-on-accent);
+    }
+
+    @media (max-width: 768px) {
+      .shell {
+        width: min(var(--content), calc(100% - 2 * var(--space-24)));
+      }
+
+      .site-header .shell {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .nav-list {
+        justify-content: flex-start;
+      }
+
+      .layout,
+      .h-card {
+        grid-template-columns: 1fr;
+      }
+
+      .article-title {
+        font-size: 28px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body data-state="ready">
+  <div class="dev-chrome">
+    <p>Prova de estados. Esta barra não faz parte do produto.</p>
+    <div class="dev-row" role="toolbar" aria-label="Estados do fórum">
+      <button type="button" data-set-state="ready" aria-pressed="true">Conteúdo</button>
+      <button type="button" data-set-state="empty" aria-pressed="false">Vazio</button>
+      <button type="button" data-set-state="loading" aria-pressed="false">A carregar</button>
+      <button type="button" data-set-state="error" aria-pressed="false">Erro</button>
+    </div>
+    <details>
+      <summary>Decisões deste ficheiro</summary>
+      <ul>
+        <li>Tópico em destaque pedido à parte. A app abre o primeiro do seed.</li>
+        <li>Capa em placeholder. Sem as fotos da captura actual.</li>
+        <li>Outros tópicos e a sidebar são os mesmos 2. 2 + 1 = 3.</li>
+        <li>Publicado em 01 de outubro de 2026. O created_at é timestamp e o modelo grava-o no insert.</li>
+      </ul>
+    </details>
+  </div>
+
+  <div class="page">
+    <header class="site-header">
+      <div class="shell">
+        <p class="wordmark"><a href="/"><img src="conecta-logo.svg" alt="Conecta Huggy" width="169" height="25"></a></p>
+        <nav aria-label="Secções">
+          <ul class="nav-list">
+            <li><a href="/forum" aria-current="page">Fórum</a></li>
+            <li><a href="/articles">Artigos</a></li>
+            <li><a href="/content">Conteúdos</a></li>
+            <li><a href="/preference">Preferências</a></li>
+            <li><button type="button">Sair</button></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="conteudo" aria-busy="false">
+      <div class="shell">
+        <p class="notice only-empty">Ainda não há tópicos.</p>
+        <p class="notice notice--error only-error" role="alert">Não foi possível carregar os tópicos.</p>
+        <div class="only-loading" aria-hidden="true">
+          <div class="bone-block"></div>
+          <div class="bone"></div>
+          <div class="bone"></div>
+        </div>
+
+        <div class="layout only-ready">
+          <article>
+            <h1 class="article-title">Estratégias para Retenção de Clientes</h1>
+            <div class="kicker">
+              <p>Dicas para fidelizar clientes e melhorar o relacionamento.</p>
+              <p class="category">Marketing de Vendas</p>
+            </div>
+            <div class="cover" aria-hidden="true">
+              <span class="disc">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="4" y="5" width="16" height="14" rx="2"></rect>
+                  <path d="M8 15.5 11 11l2 2 1.5-1.5L18 15.5"></path>
+                </svg>
+              </span>
+            </div>
+            <div class="body-copy">
+              <h2>Fidelização</h2>
+              <p>Construir um relacionamento forte com clientes pode garantir a longevidade do negócio.</p>
+              <p>Ofereça valor contínuo, crie programas de fidelidade, escute o feedback dos clientes.</p>
+            </div>
+            <p class="byline">
+              <span class="disc disc--sm" aria-hidden="true">A</span>
+              <span class="byline-copy">
+                <span>Por: Ana</span>
+                <span>Publicado em: <time class="num" datetime="2026-10-01">01 de outubro de 2026</time></span>
+              </span>
+            </p>
+
+            <section aria-labelledby="outros">
+              <h2 class="section-title" id="outros">Outros tópicos</h2>
+              <ul class="h-list">
+                <li>
+                  <article class="h-card">
+                    <div class="plate" aria-hidden="true">
+                      <span class="disc disc--sm disc--lilac">A</span>
+                    </div>
+                    <div class="copy">
+                      <h3>Construindo Relacionamentos Duradouros</h3>
+                      <p>Discussão aberta sobre o tema de relacionamento com o cliente.</p>
+                      <p class="mini-by"><span class="disc disc--sm disc--lilac" aria-hidden="true">A</span> por Ana</p>
+                    </div>
+                  </article>
+                </li>
+                <li>
+                  <article class="h-card">
+                    <div class="plate" aria-hidden="true">
+                      <span class="disc disc--sm disc--dark">A</span>
+                    </div>
+                    <div class="copy">
+                      <h3>A Importância do Calor Humano</h3>
+                      <p>Como o atendimento digital pode ter empatia e proximidade.</p>
+                      <p class="mini-by"><span class="disc disc--sm disc--dark" aria-hidden="true">A</span> por Ana</p>
+                    </div>
+                  </article>
+                </li>
+              </ul>
+            </section>
+          </article>
+
+          <aside aria-labelledby="recentes">
+            <h2 class="section-title" id="recentes">Tópicos Recentes</h2>
+            <ul class="stack">
+              <li>
+                <article class="side-card">
+                  <h3>Construindo Relacionamentos Duradouros</h3>
+                  <p>Discussão aberta sobre o tema de relacionamento com o cliente.</p>
+                  <p class="mini-by"><span class="disc disc--sm disc--lilac" aria-hidden="true">A</span> por Ana</p>
+                </article>
+              </li>
+              <li>
+                <article class="side-card">
+                  <h3>A Importância do Calor Humano</h3>
+                  <p>Como o atendimento digital pode ter empatia e proximidade.</p>
+                  <p class="mini-by"><span class="disc disc--sm disc--dark" aria-hidden="true">A</span> por Ana</p>
+                </article>
+              </li>
+            </ul>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell">
+        <p>Conecta Huggy — <span class="num">2026</span></p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const main = document.getElementById("conteudo");
+    const buttons = document.querySelectorAll("[data-set-state]");
+
+    function setState(state) {
+      document.body.dataset.state = state;
+      main.setAttribute("aria-busy", state === "loading" ? "true" : "false");
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.setState === state ? "true" : "false");
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setState(button.dataset.setState));
+    });
+  </script>
+</body>
+</html>

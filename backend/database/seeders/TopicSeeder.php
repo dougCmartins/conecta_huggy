@@ -15,20 +15,18 @@ class TopicSeeder extends Seeder
      */
     public function run(): void
     {
-        $user = User::find(1);
-        $category1 = Category::find(1);
-        $category2 = Category::find(2);
-        $category3 = Category::find(3);
+        $user = User::query()->where('email', 'ana@conecta.test')->first();
+        $customerSuccess = Category::query()->where('name', 'Customer Success')->first();
+        $digitalService = Category::query()->where('name', 'Atendimento Digital')->first();
+        $salesMarketing = Category::query()->where('name', 'Marketing de Vendas')->first();
 
-        if (!$user || !$category1 || !$category2 || !$category3) {
-            dump("Execute os seeders das categorias e usuários primeiro.");
+        if (! $user || ! $customerSuccess || ! $digitalService || ! $salesMarketing) {
             return;
         }
 
         $topics = [
             [
-                'user_id' => $user->id,
-                'category_id' => $category1->id,
+                'category_id' => $customerSuccess->id,
                 'title' => 'Construindo Relacionamentos Duradouros',
                 'subtitle' => 'Discussão aberta sobre o tema de relacionamento com o cliente.',
                 'content' => '<h1>Customer Success</h1><p>Customer Success é essencial para criar laços entre empresas e seus clientes, promovendo resultados positivos e retenção a longo prazo.</p><p>Entenda as necessidades do cliente, ofereça suporte proativo, monitore indicadores de sucesso.</p>',
@@ -36,8 +34,7 @@ class TopicSeeder extends Seeder
                 'is_closed' => false,
             ],
             [
-                'user_id' => $user->id,
-                'category_id' => $category2->id,
+                'category_id' => $digitalService->id,
                 'title' => 'A Importância do Calor Humano',
                 'subtitle' => 'Como o atendimento digital pode ter empatia e proximidade.',
                 'content' => '<h1>Atendimento Digital</h1><p>Mesmo em canais digitais, criar um atendimento caloroso faz a diferença. Saiba como encantar os clientes!</p><p>Seja humano, responda rapidamente, use a tecnologia a seu favor.</p>',
@@ -45,24 +42,37 @@ class TopicSeeder extends Seeder
                 'is_closed' => false,
             ],
             [
-                'user_id' => $user->id,
-                'category_id' => $category3->id,
+                'category_id' => $salesMarketing->id,
                 'title' => 'Estratégias para Retenção de Clientes',
                 'subtitle' => 'Dicas para fidelizar clientes e melhorar o relacionamento.',
                 'content' => '<h1>Fidelização</h1><p>Construir um relacionamento forte com clientes pode garantir a longevidade do negócio.</p><p>Ofereça valor contínuo, crie programas de fidelidade, escute o feedback dos clientes.</p>',
                 'image' => 'insides.jpg',
                 'is_closed' => false,
-            ]
+            ],
         ];
 
         foreach ($topics as $key => $topicData) {
-            $topic = Topic::create($topicData);
+            $topic = Topic::query()->updateOrCreate(
+                ['title' => $topicData['title']],
+                [
+                    'user_id' => $user->id,
+                    'category_id' => $topicData['category_id'],
+                    'subtitle' => $topicData['subtitle'],
+                    'content' => $topicData['content'],
+                    'image' => $topicData['image'],
+                    'is_closed' => $topicData['is_closed'],
+                ],
+            );
 
-            Post::create([
-                'topic_id' => $topic->id,
-                'user_id'  => $user->id,
-                'comment'  => "<p>Este é o conteúdo do post {$key} no tópico '{$topic->title}'.</p>"
-            ]);
+            Post::query()->updateOrCreate(
+                [
+                    'topic_id' => $topic->id,
+                    'user_id' => $user->id,
+                ],
+                [
+                    'comment' => "<p>Este é o conteúdo do post {$key} no tópico '{$topic->title}'.</p>",
+                ],
+            );
         }
     }
 }

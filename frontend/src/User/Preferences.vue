@@ -1,7 +1,7 @@
 <template>
-  <v-template>
-    <div class="login">
+  <div class="login">
     <div class="login--content-form">
+      <h1 class="visually-hidden">Preferências</h1>
       <form @submit.prevent="updatePreferences">
         <div class="form">
           <div class="form-item">
@@ -26,6 +26,7 @@
                 label="description"
                 track-by="id"
                 :multiple="true"
+                placeholder="Selecione um ou mais seguimentos"
             >
             </multiselect>
           </div>
@@ -33,7 +34,7 @@
             <base-button
                 type="submit"
                 text="Salvar alterações"
-                variant="default-outline"
+                variant="default"
             />
           </div>
           <p v-if="auth.error" class="error">{{ auth.error }}</p>
@@ -41,7 +42,6 @@
       </form>
     </div>
   </div>
-  </v-template>
 </template>
 
 <script setup lang="ts">
@@ -53,7 +53,6 @@ import { useRouter } from 'vue-router';
 import BaseButton from "@/ui/BaseButton.vue";
 import { storeToRefs } from "pinia";
 import Multiselect from 'vue-multiselect';
-import VTemplate from "@/ui/VTemplate.vue";
 
 const useUserStore = userStore();
 const { user } = storeToRefs(useUserStore);
@@ -132,21 +131,22 @@ const updatePreferences = async () => {
   }
 
   &--content-form {
-    background-color: var(--vt-c-white);
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 2px 9px 49px -17px rgba(0, 0, 0, 0.3);
-    max-width: 400px;
-    width: 100%;
-    margin: 3rem;
+    background-color: var(--surface-card);
+    padding: var(--space-32);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    max-width: 420px;
+    width: min(420px, calc(100% - var(--space-48)));
+    margin: var(--space-48) auto;
 
     &-text {
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      padding: 4px;
-      margin-bottom: 10px;
+      padding: var(--space-8);
+      margin-bottom: var(--space-16);
       img {
         width: 100%;
         height: auto;
@@ -159,20 +159,20 @@ const updatePreferences = async () => {
   .form {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--space-24);
 
     &-item {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: var(--space-8);
 
       &--button {
         display: block;
         width: 100%;
-        text-align: center;
-        margin-top: 1rem;
-        padding-top: 2rem;
-        border-top: 1px solid var(--vt-c-text-light-3)
+
+        .base-button {
+          width: 100%;
+        }
       }
 
       &.checkbox-container {
@@ -181,26 +181,48 @@ const updatePreferences = async () => {
       }
     }
 
-    input, select {
-      padding: 0.75rem;
-      border: 1px solid var(--vt-c-text-light-3);
-      border-radius: 8px;
-      font-size: 12px;
+    input:not([type="checkbox"]), select {
+      min-height: 44px;
+      padding: var(--space-12) var(--space-16);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-field);
+      font-size: 16px;
       width: 100%;
       box-sizing: border-box;
       font-family: 'Poppins', 'Source Sans Pro', sans-serif;
-      color: var(--vt-c-text-dark-3);
+      color: var(--text-primary);
       overflow: hidden;
 
       &:focus {
         outline: none;
-        border-color: var(--vt-primary);
+        border-color: var(--vt-c-text-brand-1);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--vt-c-text-brand-1);
+        outline-offset: 3px;
+        border-color: var(--vt-c-text-brand-1);
       }
     }
 
     label {
-      color: var(--vt-c-text-dark-3);
+      color: var(--text-primary);
+      font-size: 14px;
       font-weight: 500;
+    }
+
+    :deep(.multiselect__tags) {
+      min-height: 44px;
+      padding: var(--space-8) var(--space-16);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-field);
+      font-size: 16px;
+    }
+
+    :deep(.multiselect__input),
+    :deep(.multiselect__single) {
+      font-size: 16px;
+      font-family: 'Poppins', 'Source Sans Pro', sans-serif;
     }
   }
 }
@@ -208,16 +230,28 @@ const updatePreferences = async () => {
 .checkbox-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: var(--space-8);
   width: 100%;
   input {
     width: auto !important;
   }
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .error {
-  color: red;
-  margin-top: 10px;
+  color: var(--color-error);
+  margin: 0;
   text-align: center;
 }
 </style>

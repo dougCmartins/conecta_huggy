@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conecta Huggy — guest v2 (mockup)</title>
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=poppins:400,500,600,700">
+  <style>
+    /*
+      Decisões deste ficheiro (também em improvement-plan.md):
+      - Ecrã /guest. Sem nav autenticada: Guest.vue não usa VTemplate.
+      - Tom: institucional e acolhedor. Ritmo claro / escuro / fecho,
+        com 96px entre secções. A ordem das secções da landing não entra.
+      - Hero: título, missão e botões são o texto de Guest.vue.
+        Entrar é outline e vai a /login. Começar agora é preenchido
+        e vai a /register.
+      - O diagrama é original: anéis, quatro discos de avatar e três
+        balões. Não usa hyggor-1.svg nem o mascote.
+      - "Canais" não está em Guest.vue. Os três nomes estão no
+        SegmentSeeder. Não há texto extra no seed, por isso o card
+        só mostra o nome.
+      - A faixa escura lista as três salas com contagens do seed:
+        3 tópicos, 9 artigos, 8 vídeos únicos.
+        A trilha tem 10 embeds; 2 repetem-se, por isso 10 − 2 = 8.
+        Os três números não se somam.
+      - Os cards da faixa escura alternam o recuo. Abaixo de 768px
+        ficam alinhados.
+      - O fecho é marketing. Não repete a frase da missão nem os botões.
+        A imagem fica à esquerda e o texto à direita. No hero é o contrário.
+        O painel é desenhado. Não há foto.
+      - O rodapé é um gradiente de #E00060 para #120A22.
+        Guest.vue usa #f8006d para #9f04b7 e um hífen no ano.
+        Aqui o texto é "Conecta Huggy — 2026". O símbolo não entra.
+      - A página não pede dados. Não há estado vazio, a carregar
+        nem erro. A prova cobre conteúdo e foco no botão preenchido.
+      - Abaixo de 960px o hero empilha e o título fica primeiro.
+        Guest.vue só parte aos 768px e mostra a figura primeiro.
+      - Abaixo de 768px os canais empilham e os cards da faixa
+        escura deixam o recuo.
+      - A barra de estados não vai para o produto.
+    */
+
+    :root {
+      --surface: #F4F2FC;
+      --surface-veil: #FFEFF7;
+      --surface-card: #FFFFFF;
+      --surface-dark: #120A22;
+      --border: #E4E0F0;
+      --border-on-dark: rgba(255, 255, 255, 0.10);
+      --text-primary: #161222;
+      --text-on-accent: #FFFFFF;
+      --text-muted: #6E6878;
+      --text-on-dark: rgba(255, 255, 255, 0.72);
+      --accent: #E00060;
+      --accent-pressed: #D01060;
+      --accent-secondary: #A99BF2;
+      --shadow-card: 0 8px 32px rgba(22, 16, 40, 0.06);
+      --radius-card: 20px;
+      --radius-pill: 999px;
+      --space-8: 8px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-24: 24px;
+      --space-32: 32px;
+      --space-48: 48px;
+      --space-section: 96px;
+      --font: "Poppins", "Source Sans Pro", sans-serif;
+      --shell: 1120px;
+      --bp: 768px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-primary);
+      background: linear-gradient(165deg, var(--surface) 0%, #F2F1FF 46%, var(--surface-veil) 100%);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dev-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      gap: var(--space-12);
+      padding: var(--space-12) var(--space-24);
+      background: var(--text-primary);
+      color: var(--text-on-accent);
+    }
+
+    .dev-chrome p,
+    .dev-chrome summary {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .dev-chrome summary {
+      cursor: pointer;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .dev-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+    }
+
+    .dev-chrome button {
+      min-height: 44px;
+      padding: var(--space-8) var(--space-16);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .dev-chrome button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .dev-chrome details ul {
+      margin: var(--space-8) 0 0;
+      padding-left: 1.2rem;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .shell {
+      width: min(var(--shell), calc(100% - 2 * var(--space-48)));
+      margin-inline: auto;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(220px, 0.85fr);
+      align-items: center;
+      gap: var(--space-48);
+      padding-block: var(--space-section);
+    }
+
+    .hero h1 {
+      margin: 0 0 var(--space-16);
+      font-size: 56px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .hero-copy p,
+    .close p {
+      margin: 0;
+      max-width: 36rem;
+      color: var(--text-muted);
+      font-size: 18px;
+      line-height: 1.5;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-12);
+      margin-top: var(--space-32);
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: var(--space-8) var(--space-24);
+      border-radius: var(--radius-pill);
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .btn-outline {
+      border: 1.5px solid var(--accent);
+      background: transparent;
+      color: var(--accent);
+    }
+
+    .btn-fill {
+      border: 1.5px solid var(--accent);
+      background: var(--accent);
+      color: var(--text-on-accent);
+    }
+
+    .diagram {
+      width: 100%;
+      height: auto;
+    }
+
+    .channels,
+    .close {
+      padding-bottom: var(--space-section);
+    }
+
+    .channels h2,
+    .rooms h2 {
+      margin: 0 0 var(--space-32);
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .channel-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-24);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .channel {
+      display: flex;
+      align-items: center;
+      gap: var(--space-16);
+      min-height: 112px;
+      padding: var(--space-24);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      background: var(--surface-card);
+      box-shadow: var(--shadow-card);
+    }
+
+    .channel p {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+    }
+
+    .disc {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      flex: 0 0 48px;
+      border-radius: var(--radius-pill);
+      color: var(--text-on-accent);
+    }
+
+    .disc svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .disc--accent { background: var(--accent); }
+    .disc--lilac { background: var(--accent-secondary); color: var(--text-primary); }
+    .disc--dark { background: var(--surface-dark); }
+
+    .rooms {
+      padding-block: var(--space-section);
+      background: var(--surface-dark);
+      color: var(--text-on-accent);
+    }
+
+    .rooms h2 {
+      max-width: 16rem;
+    }
+
+    .room-list {
+      display: grid;
+      gap: var(--space-48);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .room {
+      display: flex;
+      align-items: baseline;
+      gap: var(--space-24);
+      width: min(100%, 640px);
+      padding: var(--space-32);
+      border: 1px solid var(--border-on-dark);
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .room:nth-child(even) {
+      margin-left: auto;
+    }
+
+    .room strong {
+      font-size: 48px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    .room span {
+      color: var(--text-on-dark);
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    .close {
+      padding-block: var(--space-section);
+    }
+
+    .close-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.85fr) minmax(0, 1.15fr);
+      align-items: center;
+      gap: var(--space-48);
+    }
+
+    .close h2 {
+      margin: 0 0 var(--space-16);
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.15;
+    }
+
+    .close-figure {
+      width: 100%;
+      height: auto;
+    }
+
+    .site-footer {
+      border-top-left-radius: var(--radius-card);
+      border-top-right-radius: var(--radius-card);
+      background: linear-gradient(90deg, var(--accent) 0%, var(--surface-dark) 100%);
+      color: var(--text-on-accent);
+    }
+
+    .site-footer .shell {
+      display: flex;
+      justify-content: center;
+      min-height: 150px;
+      align-items: center;
+    }
+
+    .site-footer p {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 500;
+    }
+
+    body[data-state="focus"] .btn-fill {
+      outline: 2px solid var(--text-primary);
+      outline-offset: 3px;
+    }
+
+    @media (hover: hover) {
+      .btn-outline:hover {
+        background: var(--surface-veil);
+      }
+
+      .btn-fill:hover {
+        background: var(--accent-pressed);
+        border-color: var(--accent-pressed);
+      }
+
+      .dev-chrome button:hover {
+        border-color: var(--text-on-accent);
+      }
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .btn-fill:focus-visible,
+    .dev-chrome button:focus-visible,
+    .dev-chrome summary:focus-visible {
+      outline-color: var(--text-on-accent);
+    }
+
+    .btn-outline:focus-visible {
+      outline-color: var(--text-primary);
+    }
+
+    @media (max-width: 960px) {
+      .hero {
+        grid-template-columns: 1fr;
+        gap: var(--space-32);
+      }
+
+      .hero h1 {
+        font-size: 40px;
+      }
+
+      .diagram,
+      .close-figure {
+        max-width: 420px;
+        margin-inline: auto;
+      }
+
+      .close-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .close h2 {
+        font-size: 32px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .shell {
+        width: min(var(--shell), calc(100% - 2 * var(--space-24)));
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        gap: var(--space-32);
+        padding-block: var(--space-48);
+      }
+
+      .hero h1,
+      .room strong {
+        font-size: 40px;
+      }
+
+      .channels h2,
+      .rooms h2 {
+        font-size: 28px;
+      }
+
+      .diagram {
+        max-width: 320px;
+        margin-inline: auto;
+      }
+
+      .channel-list {
+        grid-template-columns: 1fr;
+      }
+
+      .room,
+      .room:nth-child(even) {
+        width: 100%;
+        margin-left: 0;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body data-state="ready">
+  <div class="dev-chrome">
+    <p>Prova de estados. Esta barra não faz parte do produto.</p>
+    <div class="dev-row" role="toolbar" aria-label="Estados da entrada">
+      <button type="button" data-set-state="ready" aria-pressed="true">Conteúdo</button>
+      <button type="button" data-set-state="focus" aria-pressed="false">Foco</button>
+    </div>
+    <details>
+      <summary>Decisões deste ficheiro</summary>
+      <ul>
+        <li>Ritmo claro, escuro e fecho. Sem a ordem da landing.</li>
+        <li>Canais: 3 nomes do seed. Salas: 3 tópicos, 9 artigos, 8 vídeos.</li>
+        <li>10 embeds na trilha, 2 repetidos. 10 − 2 = 8. Os totais não se somam.</li>
+        <li>Sem pedido de dados. A prova é conteúdo e foco.</li>
+        <li>O fecho troca de lado: imagem à esquerda, texto de marketing à direita. Sem botões.</li>
+      </ul>
+    </details>
+  </div>
+
+  <main id="conteudo">
+    <section class="hero shell">
+      <div class="hero-copy">
+        <h1>Comunidade Conecta Huggy</h1>
+        <p>
+          Nossa missão é melhorar os relacionamentos entre organizações e
+          clientes. A gente faz isso através do atendimento digital, humano,
+          escalável e em tempo real. Simples assim, vantajoso para quem
+          atende e para quem é atendido.
+        </p>
+        <div class="actions">
+          <a class="btn btn-outline" href="/login">Entrar</a>
+          <a class="btn btn-fill" href="/register">Começar agora</a>
+        </div>
+      </div>
+      <svg class="diagram" viewBox="0 0 520 520" role="img" aria-label="Diagrama da comunidade: pessoas e mensagens à volta de um centro">
+        <circle cx="260" cy="260" r="210" fill="none" stroke="#A99BF2" stroke-width="1.5" stroke-dasharray="3 10"></circle>
+        <circle cx="260" cy="260" r="148" fill="none" stroke="#A99BF2" stroke-width="1.5" stroke-dasharray="3 10"></circle>
+        <circle cx="260" cy="260" r="88" fill="none" stroke="#E4E0F0" stroke-width="1.5"></circle>
+        <circle cx="260" cy="260" r="58" fill="#A99BF2"></circle>
+        <path fill="#FFFFFF" d="M238 248h36a8 8 0 0 1 8 8v18a8 8 0 0 1-8 8h-16l-10 8v-8h-10a8 8 0 0 1-8-8v-18a8 8 0 0 1 8-8z"></path>
+
+        <g transform="translate(360 96)">
+          <circle r="28" fill="#E00060"></circle>
+          <circle cy="-6" r="7" fill="#FFFFFF"></circle>
+          <path fill="#FFFFFF" d="M-12 14c1.2-8 6-11 12-11s10.8 3 12 11z"></path>
+        </g>
+        <g transform="translate(448 300)">
+          <circle r="28" fill="#120A22"></circle>
+          <circle cy="-6" r="7" fill="#FFFFFF"></circle>
+          <path fill="#FFFFFF" d="M-12 14c1.2-8 6-11 12-11s10.8 3 12 11z"></path>
+        </g>
+        <g transform="translate(96 330)">
+          <circle r="28" fill="#A99BF2"></circle>
+          <circle cy="-6" r="7" fill="#161222"></circle>
+          <path fill="#161222" d="M-12 14c1.2-8 6-11 12-11s10.8 3 12 11z"></path>
+        </g>
+        <g transform="translate(132 118)">
+          <circle r="28" fill="#FFEFF7"></circle>
+          <circle cy="-6" r="7" fill="#161222"></circle>
+          <path fill="#161222" d="M-12 14c1.2-8 6-11 12-11s10.8 3 12 11z"></path>
+        </g>
+
+        <rect x="214" y="28" width="84" height="36" rx="14" fill="#FFFFFF" stroke="#E4E0F0"></rect>
+        <rect x="392" y="168" width="72" height="32" rx="14" fill="#E00060"></rect>
+        <rect x="40" y="210" width="88" height="36" rx="14" fill="#FFFFFF" stroke="#E4E0F0"></rect>
+      </svg>
+    </section>
+
+    <section class="channels" aria-labelledby="canais">
+      <div class="shell">
+        <h2 id="canais">Canais</h2>
+        <ul class="channel-list">
+          <li class="channel">
+            <span class="disc disc--accent" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <circle cx="8" cy="9" r="2.2"></circle>
+                <circle cx="16" cy="9" r="2.2"></circle>
+                <path d="M4.5 18c.6-2.4 2.2-3.6 3.5-3.6S11 15.6 11.6 18"></path>
+                <path d="M12.4 18c.6-2.4 2.2-3.6 3.5-3.6s2.9 1.2 3.6 3.6"></path>
+              </svg>
+            </span>
+            <p>Canal de Relacionamento</p>
+          </li>
+          <li class="channel">
+            <span class="disc disc--lilac" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7 16.5 5.5 19.5 9 17.2"></path>
+                <path d="M8 16.5h8.2a3 3 0 0 0 3-3v-4a3 3 0 0 0-3-3H8a3 3 0 0 0-3 3v4a3 3 0 0 0 3 3z"></path>
+              </svg>
+            </span>
+            <p>Canal de Atendimento</p>
+          </li>
+          <li class="channel">
+            <span class="disc disc--dark" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <circle cx="12" cy="12" r="7"></circle>
+                <path d="M12 9v3.2L14.2 14"></path>
+              </svg>
+            </span>
+            <p>Canal de Vendas</p>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="rooms" aria-labelledby="salas">
+      <div class="shell">
+        <h2 id="salas">Fórum, artigos e conteúdos</h2>
+        <ol class="room-list">
+          <li class="room">
+            <strong class="num">3</strong>
+            <span>tópicos no Fórum</span>
+          </li>
+          <li class="room">
+            <strong class="num">9</strong>
+            <span>artigos</span>
+          </li>
+          <li class="room">
+            <strong class="num">8</strong>
+            <span>vídeos na trilha</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="close" aria-labelledby="fecho">
+      <div class="shell close-grid">
+        <svg class="close-figure" viewBox="0 0 480 400" role="img" aria-label="Troca de mensagens entre pessoas da comunidade">
+          <rect width="480" height="400" rx="20" fill="#FFEFF7"></rect>
+          <rect x="56" y="48" width="250" height="148" rx="20" fill="#A99BF2"></rect>
+          <rect x="148" y="118" width="276" height="168" rx="20" fill="#FFFFFF" stroke="#E4E0F0"></rect>
+          <circle cx="188" cy="168" r="18" fill="#E00060"></circle>
+          <circle cx="188" cy="162" r="5" fill="#FFFFFF"></circle>
+          <path fill="#FFFFFF" d="M178 178c1-6 4.4-8 10-8s9 2 10 8z"></path>
+          <rect x="222" y="156" width="160" height="10" rx="5" fill="#E4E0F0"></rect>
+          <rect x="222" y="178" width="120" height="10" rx="5" fill="#F4F2FC"></rect>
+          <rect x="222" y="200" width="148" height="10" rx="5" fill="#F4F2FC"></rect>
+          <rect x="36" y="248" width="210" height="96" rx="20" fill="#120A22"></rect>
+          <rect x="60" y="276" width="120" height="10" rx="5" fill="#FFFFFF"></rect>
+          <rect x="60" y="298" width="84" height="10" rx="5" fill="rgba(255,255,255,0.45)"></rect>
+        </svg>
+        <div>
+          <h2 id="fecho">A conversa continua depois do primeiro contacto.</h2>
+          <p>
+            No fórum, nos artigos e na trilha, quem atende encontra a prática
+            de quem já passou pelo mesmo caminho. A comunidade aproxima
+            quem atende e mantém o atendimento humano, no ritmo do dia a dia.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell">
+      <p>Conecta Huggy — <span class="num">2026</span></p>
+    </div>
+  </footer>
+
+  <script>
+    const buttons = document.querySelectorAll("[data-set-state]");
+
+    function setState(state) {
+      document.body.dataset.state = state;
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.setState === state ? "true" : "false");
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setState(button.dataset.setState));
+    });
+  </script>
+</body>
+</html>

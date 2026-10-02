@@ -47,17 +47,18 @@ const classes = computed(() => [
   display: inline-flex;
   justify-content: center;
   align-items: center;
-  border-radius: 50px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
   font-family: 'Poppins', 'Source Sans Pro', sans-serif;
   font-style: normal;
-  font-weight: 500;
-  line-height: 15px;
-  padding: 10px 20px;
+  font-weight: 600;
+  line-height: 1.5;
+  padding: var(--space-12) var(--space-24);
   border: 1px solid transparent;
   cursor: pointer;
   transition: background-color 0.3s, border-color 0.3s, opacity 0.3s;
   white-space: nowrap;
-  font-size: 14px;
+  font-size: 15px;
 
   &--primary {
     background-color: var(--vt-primary);

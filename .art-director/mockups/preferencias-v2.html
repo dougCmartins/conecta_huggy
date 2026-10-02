@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conecta Huggy — preferências v2 (mockup)</title>
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=poppins:400,500,600,700">
+  <style>
+    /*
+      Decisões deste ficheiro (também em improvement-plan.md):
+      - Ecrã: /preference, dentro do mesmo chrome da home (cabeçalho e rodapé)
+        e do mesmo card do login/registo.
+      - Card 420px, raio 20px, sombra 0 8px 32px rgba(22, 16, 40, 0.06),
+        padding 32px, Poppins, gradiente #F4F2FC → #FFEFF7, botão pill
+        #E00060, hover #D01060, sem sombra no botão.
+      - Nome "Ana" e e-mail "ana@conecta.test" vêm do UserSeeder.
+      - A caixa começa marcada: o seed cria a preferência com is_subscribed true.
+      - O seed não liga seguimentos. O select fica vazio: 0 de 3.
+        As opções são Canal de Relacionamento, Canal de Atendimento e
+        Canal de Vendas.
+      - O rótulo é "Seguimentos:", como em Preferences.vue. O placeholder
+        "Selecione um ou mais seguimentos" é o do registo. Este ecrã não
+        define placeholder no vue-multiselect. O controle da prova é um
+        select multiple nativo.
+      - O botão mantém "Salvar alterações".
+      - A guardar: o botão fica disabled e o formulário aria-busy.
+        O texto do botão não muda.
+      - Guardado: "Alterações guardadas." A app não mostra esta frase.
+        Depois de gravar, manda para a home. Não usa #54D271.
+      - Erro: "Erro ao atualizar preferências", o fallback de userStore.ts,
+        por baixo do botão. Cor #7A1F33. Não é um erro por campo.
+      - Preferências leva aria-current="page".
+      - O rodapé da app usa hífen. Aqui o texto pedido é
+        "Conecta Huggy — 2026".
+      - O estado Foco desenha o anel no nome. O anel de teclado continua
+        em :focus-visible.
+      - Breakpoint 768px: a nav passa para baixo do wordmark e o card
+        usa a largura da página menos 48px, sem passar de 420px.
+      - A barra de estados não vai para o produto.
+    */
+
+    :root {
+      --surface: #F4F2FC;
+      --surface-veil: #FFEFF7;
+      --surface-card: #FFFFFF;
+      --border: #E4E0F0;
+      --text-primary: #161222;
+      --text-on-accent: #FFFFFF;
+      --text-muted: #6E6878;
+      --accent: #E00060;
+      --accent-pressed: #D01060;
+      --color-error: #7A1F33;
+      --shadow-card: 0 8px 32px rgba(22, 16, 40, 0.06);
+      --radius-card: 20px;
+      --radius-field: 12px;
+      --radius-pill: 999px;
+      --space-8: 8px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-24: 24px;
+      --space-32: 32px;
+      --space-48: 48px;
+      --font: "Poppins", "Source Sans Pro", sans-serif;
+      --card: 420px;
+      --bp: 768px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-primary);
+      background: linear-gradient(165deg, var(--surface) 0%, #F2F1FF 46%, var(--surface-veil) 100%);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dev-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      gap: var(--space-12);
+      padding: var(--space-12) var(--space-24);
+      background: var(--text-primary);
+      color: var(--text-on-accent);
+    }
+
+    .dev-chrome p,
+    .dev-chrome summary {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .dev-chrome summary {
+      cursor: pointer;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .dev-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+    }
+
+    .dev-chrome button {
+      min-height: 44px;
+      padding: var(--space-8) var(--space-16);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .dev-chrome button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .dev-chrome details ul {
+      margin: var(--space-8) 0 0;
+      padding-left: 1.2rem;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .site-header {
+      padding-block: var(--space-24);
+    }
+
+    .shell {
+      width: min(1120px, calc(100% - 2 * var(--space-48)));
+      margin-inline: auto;
+    }
+
+    .site-header .shell,
+    .nav-list {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-24);
+    }
+
+    .wordmark {
+      margin: 0;
+      line-height: 0;
+    }
+
+    .wordmark a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .wordmark img {
+      display: block;
+      height: 28px;
+      width: auto;
+    }
+
+    .nav-list {
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .nav-list a,
+    .nav-list button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: var(--space-8) var(--space-12);
+      border: 0;
+      background: transparent;
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+    }
+
+    .nav-list a[aria-current="page"] {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      place-items: center;
+      padding: var(--space-48) var(--space-24);
+    }
+
+    .card {
+      width: min(var(--card), 100%);
+      padding: var(--space-32);
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+
+    label,
+    .hint {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    .hint {
+      margin: 0;
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 44px;
+      padding: var(--space-12) var(--space-16);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-field);
+      background: var(--surface-card);
+      color: var(--text-primary);
+      font: inherit;
+      font-size: 16px;
+    }
+
+    select {
+      min-height: 132px;
+    }
+
+    input:focus,
+    select:focus {
+      outline: none;
+    }
+
+    input:focus-visible,
+    select:focus-visible,
+    body[data-state="focus"] #name {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-color: var(--accent);
+    }
+
+    .check {
+      display: flex;
+      align-items: center;
+      gap: var(--space-12);
+      min-height: 44px;
+    }
+
+    .check input {
+      width: 20px;
+      height: 20px;
+      min-height: 20px;
+      padding: 0;
+      accent-color: var(--accent);
+    }
+
+    .check label {
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .submit {
+      width: 100%;
+      min-height: 44px;
+      padding: var(--space-12) var(--space-24);
+      border: 0;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .submit:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .status {
+      display: none;
+      margin: 0;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    body[data-state="saved"] .status--saved,
+    body[data-state="error"] .status--error {
+      display: block;
+    }
+
+    .status--error {
+      color: var(--color-error);
+    }
+
+    .site-footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface-card);
+    }
+
+    .site-footer .shell {
+      display: flex;
+      justify-content: center;
+      padding-block: var(--space-32);
+    }
+
+    .site-footer p {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    @media (hover: hover) {
+      .submit:hover:not(:disabled) {
+        background: var(--accent-pressed);
+      }
+
+      .nav-list a:hover,
+      .nav-list button:hover,
+      .wordmark a:hover {
+        color: var(--text-primary);
+      }
+
+      .dev-chrome button:hover {
+        border-color: var(--text-on-accent);
+      }
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .dev-chrome button:focus-visible,
+    .dev-chrome summary:focus-visible {
+      outline-color: var(--text-on-accent);
+    }
+
+    @media (max-width: 768px) {
+      .shell {
+        width: min(1120px, calc(100% - 2 * var(--space-24)));
+      }
+
+      .site-header .shell {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .nav-list {
+        justify-content: flex-start;
+      }
+
+      main {
+        padding: var(--space-32) var(--space-24) var(--space-48);
+        align-items: start;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body data-state="normal">
+  <div class="dev-chrome">
+    <p>Prova de estados. Esta barra não faz parte do produto.</p>
+    <div class="dev-row" role="toolbar" aria-label="Estados das preferências">
+      <button type="button" data-set-state="normal" aria-pressed="true">Normal</button>
+      <button type="button" data-set-state="saving" aria-pressed="false">A guardar</button>
+      <button type="button" data-set-state="saved" aria-pressed="false">Guardado</button>
+      <button type="button" data-set-state="error" aria-pressed="false">Erro</button>
+      <button type="button" data-set-state="focus" aria-pressed="false">Foco</button>
+    </div>
+    <details>
+      <summary>Decisões deste ficheiro</summary>
+      <ul>
+        <li>Cabeçalho da área autenticada e card do login. Fundo em gradiente.</li>
+        <li>Ana, ana@conecta.test, inscrição marcada, 0 de 3 seguimentos.</li>
+        <li>Placeholder do registo, porque este ecrã não tem um no multiselect.</li>
+        <li>Erro: "Erro ao atualizar preferências". Guardado não existe na app. Ela volta à home.</li>
+      </ul>
+    </details>
+  </div>
+
+  <div class="page">
+    <header class="site-header">
+      <div class="shell">
+        <p class="wordmark"><a href="/"><img src="conecta-logo.svg" alt="Conecta Huggy" width="169" height="25"></a></p>
+        <nav aria-label="Secções">
+          <ul class="nav-list">
+            <li><a href="/forum">Fórum</a></li>
+            <li><a href="/articles">Artigos</a></li>
+            <li><a href="/content">Conteúdos</a></li>
+            <li><a href="/preference" aria-current="page">Preferências</a></li>
+            <li><button type="button">Sair</button></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="card" aria-labelledby="titulo-preferencias">
+        <h1 class="visually-hidden" id="titulo-preferencias">Preferências</h1>
+        <form id="preferences-form" novalidate>
+          <div class="field">
+            <label for="name">Nome:</label>
+            <input id="name" name="name" type="text" autocomplete="name" value="Ana" required>
+          </div>
+          <div class="field">
+            <label for="email">E-mail:</label>
+            <input id="email" name="email" type="email" autocomplete="email" value="ana@conecta.test" required>
+          </div>
+          <div class="check">
+            <input id="subscribed" name="is_subscribed" type="checkbox" checked>
+            <label for="subscribed">Ativar minha inscrição</label>
+          </div>
+          <div class="field">
+            <label for="segments">Seguimentos:</label>
+            <p class="hint" id="segments-hint">Selecione um ou mais seguimentos</p>
+            <select id="segments" name="segment_ids" multiple size="3" aria-describedby="segments-hint">
+              <option value="customer_success">Canal de Relacionamento</option>
+              <option value="atendimento">Canal de Atendimento</option>
+              <option value="marketing">Canal de Vendas</option>
+            </select>
+          </div>
+          <button class="submit" id="submit" type="submit">Salvar alterações</button>
+          <p class="status status--saved" role="status">Alterações guardadas.</p>
+          <p class="status status--error" role="alert">Erro ao atualizar preferências</p>
+        </form>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell">
+        <p>Conecta Huggy — <span class="num">2026</span></p>
+      </div>
+    </footer>
+  </div>
+
+  <style>
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  </style>
+
+  <script>
+    const form = document.getElementById("preferences-form");
+    const submit = document.getElementById("submit");
+    const nameInput = document.getElementById("name");
+    const buttons = document.querySelectorAll("[data-set-state]");
+
+    function setState(state) {
+      document.body.dataset.state = state;
+      const saving = state === "saving";
+      form.setAttribute("aria-busy", saving ? "true" : "false");
+      submit.disabled = saving;
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.setState === state ? "true" : "false");
+      });
+      if (state === "focus") {
+        nameInput.focus();
+      }
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setState(button.dataset.setState));
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+    });
+  </script>
+</body>
+</html>

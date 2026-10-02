@@ -1,230 +1,199 @@
 <template>
-  <v-template v-if="currentTopic">
-    <div class="forum">
-      <div class="topic">
-        <div  v-if="currentTopic" class="topic--container">
-          <div class="topic--header">
-            <h1>{{ currentTopic.title }}</h1>
-            <p v-if="currentTopic.subtitle">{{ currentTopic.subtitle }}</p>
-            <span class="badge" v-if="currentTopic.categoryName">
-              {{ currentTopic.categoryName }}
-            </span>
-          </div>
-          <hr />
-          <div class="topic--content">
-            <img v-if="currentTopic.image" alt="Topic Image" :src="getImageUrl(currentTopic.image)"/>
-            <div
-                class="topic--content-dinamic"
-                v-if="currentTopic.content"
-                v-html="currentTopic.content"
-            ></div>
-          </div>
-          <div class="topic--footer" v-if="currentTopic.authorName">
-            <small>Por: {{ currentTopic.authorName }}</small>
-            <small>Publicado em: {{ currentTopic.getFormattedDate() }}</small>
-          </div>
+  <div class="page-state" :aria-busy="isLoading ? 'true' : 'false'">
+    <content-skeleton v-if="isLoading" variant="forum" />
+    <p v-else-if="error && !topics.length" class="notice notice--error" role="alert">{{ error }}</p>
+    <p v-else-if="!currentTopic" class="notice">Ainda não há tópicos.</p>
+    <div v-else class="forum">
+      <article class="topic">
+        <h1>{{ currentTopic.title }}</h1>
+        <div class="kicker">
+          <p v-if="currentTopic.subtitle">{{ currentTopic.subtitle }}</p>
+          <p v-if="currentTopic.categoryName" class="category">{{ currentTopic.categoryName }}</p>
         </div>
-        <div class="topics-list" v-if="filteredTopics">
-          <h1>
-            Outros tópicos
-          </h1>
-          <card-base
-              v-for="(topic, index) in filteredTopics"
-              :key="index"
-          >
+        <div class="cover" :aria-hidden="coverImage ? undefined : true">
+          <img v-if="coverImage" :src="coverImage" :alt="currentTopic.title">
+          <span v-else class="ui-disc">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="4" y="5" width="16" height="14" rx="2" />
+              <path d="M8 15.5 11 11l2 2 1.5-1.5L18 15.5" />
+            </svg>
+          </span>
+        </div>
+        <div class="body-copy" v-if="currentTopic.content" v-html="currentTopic.content"></div>
+        <p class="byline" v-if="currentTopic.authorName">
+          <span class="ui-disc ui-disc--sm" aria-hidden="true">{{ initial(currentTopic.authorName) }}</span>
+          <span>
+            <span>Por: {{ currentTopic.authorName }}</span>
+            <span>Publicado em: {{ currentTopic.getFormattedDate() }}</span>
+          </span>
+        </p>
+
+        <section v-if="filteredTopics.length" aria-labelledby="outros">
+          <h2 class="section-title" id="outros">Outros tópicos</h2>
+          <card-base v-for="(topic, index) in filteredTopics" :key="index">
             <template #content-img>
               <img
-                  v-if="topic.image"
-                  alt="conteudo"
-                  :src="getImageUrl(topic.image)"
+                v-if="topicImage(topic.title)"
+                :src="topicImage(topic.title)"
+                :alt="topic.title"
               >
+              <span v-else class="ui-disc ui-disc--sm ui-disc--veil" aria-hidden="true">{{ initial(topic.authorName) }}</span>
             </template>
-            <template #content-text>
-              <h2>{{ topic.title }}</h2>
-              <p v-if="topic.subtitle">{{ topic.subtitle }}</p>
-            </template>
-            <template #content-author>
-              <img v-if="topic.image" alt="autor" :src="getImageUrl(topic.image)">
-            </template>
-            <template #content-author-details>
-              <span v-if="topic.authorName">por {{ topic.authorName }}</span>
-            </template>
-          </card-base>
-        </div>
-      </div>
-      <div class="posts">
-        <div class="topics-list" v-if="filteredTopics">
-          <h2>
-            Tópicos Recentes
-          </h2>
-          <card-base
-              class="topics-list--card"
-              v-for="(topic, index) in filteredTopics"
-              :key="index"
-          >
             <template #content-text>
               <h3>{{ topic.title }}</h3>
               <p v-if="topic.subtitle">{{ topic.subtitle }}</p>
             </template>
             <template #content-author>
-              <img v-if="topic.image" alt="autor" :src="getImageUrl(topic.image)">
+              <span class="ui-disc ui-disc--sm ui-disc--veil" aria-hidden="true">{{ initial(topic.authorName) }}</span>
             </template>
             <template #content-author-details>
               <span v-if="topic.authorName">por {{ topic.authorName }}</span>
             </template>
           </card-base>
-        </div>
-      </div>
+        </section>
+      </article>
+
+      <aside class="posts" v-if="filteredTopics.length" aria-labelledby="recentes">
+        <h2 class="section-title" id="recentes">Tópicos Recentes</h2>
+        <card-base v-for="(topic, index) in filteredTopics" :key="index">
+          <template #content-text>
+            <h3>{{ topic.title }}</h3>
+            <p v-if="topic.subtitle">{{ topic.subtitle }}</p>
+          </template>
+          <template #content-author>
+            <span class="ui-disc ui-disc--sm ui-disc--dark" aria-hidden="true">{{ initial(topic.authorName) }}</span>
+          </template>
+          <template #content-author-details>
+            <span v-if="topic.authorName">por {{ topic.authorName }}</span>
+          </template>
+        </card-base>
+      </aside>
     </div>
-  </v-template>
+  </div>
 </template>
 
 <script setup lang="ts">
 import CardBase from "@/ui/CardBase.vue";
-import VTemplate from "@/ui/VTemplate.vue";
-import { onMounted, computed } from 'vue';
+import ContentSkeleton from "@/ui/ContentSkeleton.vue";
+import { computed } from 'vue';
 import { topicStore } from "@/Content/topicStore.ts";
 import { storeToRefs } from "pinia";
+import digitalCover from "@/assets/img/digital.jpg";
 
 const store = topicStore();
-const { topics } = storeToRefs(store);
+const { topics, loading, error } = storeToRefs(store);
 
 const currentTopic = computed(() => topics.value[0]);
 const filteredTopics = computed(() => topics.value.slice(1));
+const isLoading = computed(() => loading.value && topics.value.length === 0);
 
-onMounted(async () => {
-  await store.fetchTopics();
-});
+store.fetchTopics();
 
-const getImageUrl = (name: string) => {
-  return new URL(`/src/assets/img/${name}`, import.meta.url).href;
-}
+const initial = (name?: string) => name?.trim().charAt(0).toUpperCase() || "";
+
+const topicImage = (title?: string) =>
+  title === "Estratégias para Retenção de Clientes" ? digitalCover : "";
+
+const coverImage = computed(() => topicImage(currentTopic.value?.title));
 </script>
 
-<style lang="scss">
-.forum {
-  padding: 2rem;
-  gap: 30px;
-  display: flex;
-  align-items: anchor-center;
+<style scoped lang="scss">
+.notice {
+  margin: 0;
+  padding: var(--space-32);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-card);
+  background: var(--surface-card);
+}
 
-  @media (max-width: 480px) {
-    padding: inherit;
-  }
+.notice--error {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+
+.forum {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--space-48);
+  align-items: start;
 
   @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 1fr;
   }
+}
 
-  .card.card-base {
-    gap: 0;
-  }
+.topic h1,
+.section-title {
+  margin: 0 0 var(--space-12);
+  font-size: 32px;
+}
 
-  .card-base--item-text {
-    text-align: left;
-  }
-
-  .card-base--item-author {
-    justify-content: flex-start;
-    text-align: start;
-  }
-
-  .topic {
-    display: flex;
-    flex-direction: column;
-    flex: 1 1 70%;
-    @media (max-width: 768px) {
-      flex: 1 1 100%;
-    }
-    &--container {
-      display: flex;
-      gap: 10px;
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    &--header {
-      display: flex;
-      flex-direction: column;
-      border-bottom: 1px solid var(--vt-c-white-mute);
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      width: 100%;
-      h1 {
-        font-size: 35px;
-
-        @media (max-width: 480px) {
-          font-size: revert;
-        }
-      }
-    }
-
-    &--content-dinamic {
-      gap: 20px !important;
-      color: var(--vt-c-text-dark-3) !important;
-    }
-
-    &--content {
-      padding-bottom: 1rem;
-      border-bottom: 1px solid var(--vt-c-white-mute);
-      img {
-        height: auto;
-        object-fit: cover;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-        flex: 1 1 100%;
-        min-width: 400px;
-        width: 100%;
-        @media (max-width: 768px) {
-          min-width: auto;
-        }
-      }
-    }
-
-    &--footer {
-      display: flex;
-      flex-direction: column;
-      color: var(--vt-c-text-dark-3);
-    }
-
-    .topics-list {
-      margin-top: 2rem;
-    }
-  }
-
-  .posts {
-    display: flex;
-    flex: 1 1 30%;
-    @media (max-width: 768px) {
-      width: 100%;
-      flex: 1 1 100%;
-    }
-  }
-
-  .topics-list {
-    gap: 1rem;
-    @media (max-width: 768px) {
-      display: flex;
-      flex: 1;
-      flex-direction: column;
-    }
-  }
-
-  .badge {
-    font-size: 10px;
-    color: var(--vt-c-text-brand-1);
-  }
+.kicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-12);
+  align-items: center;
+  margin-bottom: var(--space-24);
 
   p {
-    word-break: break-word;
-    color: var(--vt-c-text-dark-3);
+    margin: 0;
+    color: var(--text-muted);
   }
+}
 
-  h1,h2,h3 {
-    word-break: break-word;
-    margin-bottom: 0.5rem;
-    color: var(--vt-c-text-dark-4);
+.category {
+  color: var(--vt-c-text-brand-1);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.cover {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  margin-bottom: var(--space-24);
+  border-radius: var(--radius-card);
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  overflow: hidden;
+
+  img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    display: block;
   }
+}
+
+.body-copy {
+  color: var(--text-muted);
+  margin-bottom: var(--space-24);
+}
+
+.byline {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  margin: 0 0 var(--space-48);
+
+  span span {
+    display: block;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+}
+
+.posts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+}
+
+:deep(.card-base--item-text) {
+  text-align: left;
+}
+
+:deep(.card-base--item-author) {
+  justify-content: flex-start;
 }
 </style>

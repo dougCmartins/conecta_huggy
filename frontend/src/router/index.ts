@@ -12,6 +12,7 @@ import { initializeHuggy, subscribeLead } from "@/Auth/huggy";
 import { trackEvent } from "@/router/tagManager";
 import Register from "@/User/Register.vue";
 import { ActionRoute } from '@/router/ActionRoute.ts'
+import VTemplate from "@/ui/VTemplate.vue";
 
 const routes = [
     {
@@ -31,33 +32,35 @@ const routes = [
     },
     {
         path: '/',
-        name: 'home',
-        component: Home,
+        component: VTemplate,
         meta: { requiredAuth: true },
-    },
-    {
-        path: '/preference',
-        name: 'preference',
-        component: Preferences,
-        meta: { requiredAuth: true },
-    },
-    {
-        path: '/forum',
-        name: 'forum',
-        component: Forum,
-        meta: { requiredAuth: true },
-    },
-    {
-        path: '/articles',
-        name: 'articles',
-        component: Articles,
-        meta: { requiredAuth: true },
-    },
-    {
-        path: '/content',
-        name: 'content',
-        component: Trail,
-        meta: { requiredAuth: true },
+        children: [
+            {
+                path: '',
+                name: 'home',
+                component: Home,
+            },
+            {
+                path: 'preference',
+                name: 'preference',
+                component: Preferences,
+            },
+            {
+                path: 'forum',
+                name: 'forum',
+                component: Forum,
+            },
+            {
+                path: 'articles',
+                name: 'articles',
+                component: Articles,
+            },
+            {
+                path: 'content',
+                name: 'content',
+                component: Trail,
+            },
+        ],
     },
     {
         path: '/:pathMatch(.*)*',

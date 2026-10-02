@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conecta Huggy — home v2 (mockup)</title>
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=poppins:400,500,600,700,800">
+  <style>
+    /*
+      Decisões deste ficheiro (também em improvement-plan.md):
+      - Ecrã: home autenticada (/), estrutura de VTemplate + TheWelcome.
+      - Tokens da referência aplicados em :root. Acento #E00060 porque este
+        mockup pediu os tokens da Huggy. O plano ainda não manda instalar
+        esse hex no produto; o projecto tem #f8006d.
+      - success #54D271 não entra. Não há estado de sucesso na home.
+      - --color-error #7A1F33 é só deste mockup. A referência não tem papel
+        de erro e o projecto usa a palavra red.
+      - Fundo da página: gradiente surface → véu #FFEFF7. Sem fotos, sem
+        background-1.jpg, background-2.jpg, banner.png ou hyggor.
+      - A faixa que hoje é o banner.png passa a surface-dark e lista as
+        3 categorias do seed. Não é uma secção nova da landing Huggy.
+      - Discos de ícone: só cores medidas (accent, accent-secondary,
+        surface-dark, véu). Sem ciano ou coral inventados.
+      - Textos da home vêm de TheWelcome.vue, incluindo a frase do iFood.
+      - Títulos dos cards vêm de ArticleSeeder. Autora: Ana (UserSeeder).
+      - Data 27/01/2025, 23h00 é a data fixa já escrita em TheWelcome.vue,
+        repetida nos três cards como o template faz hoje.
+      - Ana não tem foto. A inicial no disco fica centrada. A regra do
+        nome não altera o display do disco.
+      - Contagem: 3 + 3 + 3 = 9 artigos do seed. No estado vazio, 0 + 0 + 0 = 0.
+      - Família: Poppins, a mesma do base.scss. O index.html não carrega
+        fonte; este ficheiro pede Poppins ao fonts.bunny.net.
+      - Breakpoint: 768px, o mesmo do projecto. Abaixo disso o display
+        passa de 56px para 40px e o intervalo entre secções de 96px para 80px.
+      - Largura de leitura: 1120px ao centro, para o texto maior não esticar.
+      - Estados vazio, a carregar e erro não existem em TheWelcome.vue.
+        Servem só para esta prova.
+    */
+
+    :root {
+      --surface: #F4F2FC;
+      --surface-veil: #FFEFF7;
+      --surface-card: #FFFFFF;
+      --surface-dark: #120A22;
+      --border: #E4E0F0;
+      --border-dark: rgba(255, 255, 255, 0.10);
+      --text-primary: #161222;
+      --text-on-dark: #FFFFFF;
+      --text-muted: #6E6878;
+      --text-muted-dark: rgba(255, 255, 255, 0.72);
+      --accent: #E00060;
+      --accent-secondary: #A99BF2;
+      --color-error: #7A1F33;
+      --shadow-card: 0 8px 32px rgba(22, 16, 40, 0.06);
+      --radius-card: 20px;
+      --radius-pill: 999px;
+      --space-8: 8px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-24: 24px;
+      --space-32: 32px;
+      --space-48: 48px;
+      --space-section: 96px;
+      --font: "Poppins", "Source Sans Pro", sans-serif;
+      --content: 1120px;
+      --bp: 768px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-padding-top: 88px;
+    }
+
+    body {
+      margin: 0;
+      color: var(--text-primary);
+      background: linear-gradient(165deg, var(--surface) 0%, #F2F1FF 46%, var(--surface-veil) 100%);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0;
+      text-rendering: optimizeLegibility;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dev-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      gap: var(--space-12);
+      padding: var(--space-12) var(--space-24);
+      background: var(--text-primary);
+      color: var(--text-on-dark);
+    }
+
+    .dev-chrome p,
+    .dev-chrome summary {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0;
+    }
+
+    .dev-chrome summary {
+      cursor: pointer;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .dev-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+    }
+
+    .dev-chrome button {
+      min-height: 44px;
+      padding: var(--space-8) var(--space-16);
+      border: 1px solid var(--border-dark);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-on-dark);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .dev-chrome button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .dev-chrome details ul {
+      margin: var(--space-8) 0 0;
+      padding-left: 1.2rem;
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-muted-dark);
+    }
+
+    .shell {
+      width: min(var(--content), calc(100% - 2 * var(--space-48)));
+      margin-inline: auto;
+    }
+
+    .site-header {
+      padding-block: var(--space-24);
+    }
+
+    .site-header .shell {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-24);
+    }
+
+    .wordmark {
+      margin: 0;
+      line-height: 0;
+    }
+
+    .wordmark a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .wordmark img {
+      display: block;
+      height: 23px;
+      width: auto;
+    }
+
+    .nav-list {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--space-8);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .nav-list a,
+    .nav-list button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: var(--space-8) var(--space-12);
+      border: 0;
+      background: transparent;
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-section);
+      padding-bottom: var(--space-section);
+    }
+
+    .presentation {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: var(--space-48);
+      align-items: center;
+    }
+
+    .display {
+      margin: 0 0 var(--space-16);
+      font-size: 56px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .lede {
+      margin: 0;
+      max-width: 38rem;
+      color: var(--text-muted);
+    }
+
+    .plate {
+      display: grid;
+      place-items: center;
+      min-height: 320px;
+      border-radius: var(--radius-card);
+      background: linear-gradient(160deg, var(--surface) 0%, var(--surface-veil) 100%);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-card);
+    }
+
+    .disc {
+      display: grid;
+      place-items: center;
+      width: 96px;
+      height: 96px;
+      border-radius: var(--radius-pill);
+      color: var(--text-on-dark);
+    }
+
+    .disc svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    .disc--accent { background: var(--accent); }
+    .disc--lilac { background: var(--accent-secondary); color: var(--text-primary); }
+    .disc--dark { background: var(--surface-dark); }
+    .disc--veil {
+      background: var(--surface-veil);
+      color: var(--accent);
+      border: 1px solid var(--border);
+    }
+
+    .disc--sm {
+      width: 44px;
+      height: 44px;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .disc--sm svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .section-title {
+      margin: 0 0 var(--space-12);
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+
+    .section-copy {
+      margin: 0 0 var(--space-32);
+      max-width: 40rem;
+      color: var(--text-muted);
+    }
+
+    .stack {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-48);
+    }
+
+    .card {
+      display: grid;
+      grid-template-columns: minmax(220px, 40%) 1fr;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .card-media {
+      display: grid;
+      place-items: center;
+      min-height: 220px;
+      background: var(--surface);
+    }
+
+    .card-body {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-16);
+      padding: var(--space-32);
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--text-muted);
+    }
+
+    .author {
+      display: flex;
+      align-items: center;
+      gap: var(--space-12);
+      margin-top: auto;
+    }
+
+    .author-name {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .author .disc {
+      display: grid;
+      place-items: center;
+      line-height: 1;
+    }
+
+    .author small {
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .band {
+      background: var(--surface-dark);
+      color: var(--text-on-dark);
+      border-radius: var(--radius-card);
+      padding: var(--space-48);
+    }
+
+    .band-head {
+      display: flex;
+      justify-content: space-between;
+      gap: var(--space-24);
+      align-items: end;
+      margin-bottom: var(--space-32);
+    }
+
+    .band h2 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+    }
+
+    .band-total {
+      margin: 0;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-muted-dark);
+    }
+
+    .cats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-32);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .cats li {
+      display: flex;
+      align-items: center;
+      gap: var(--space-16);
+    }
+
+    .cats strong {
+      display: block;
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .cats span {
+      color: var(--text-muted-dark);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .notice {
+      margin: 0;
+      padding: var(--space-32);
+      border-radius: var(--radius-card);
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+    }
+
+    .notice--error {
+      border-color: var(--color-error);
+      color: var(--color-error);
+    }
+
+    .skeleton {
+      display: grid;
+      gap: var(--space-16);
+    }
+
+    .bone {
+      height: 16px;
+      border-radius: var(--radius-pill);
+      background: #E4E0F0;
+    }
+
+    .bone--title { width: 55%; height: 28px; }
+    .bone--line { width: 100%; }
+    .bone--short { width: 40%; }
+    .bone-card {
+      height: 220px;
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid var(--border);
+    }
+
+    .site-footer {
+      border-top: 1px solid var(--border);
+      background: var(--surface-card);
+    }
+
+    .site-footer .shell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-12);
+      padding-block: var(--space-48);
+    }
+
+    .site-footer p {
+      margin: 0;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    body[data-state="ready"] .only-empty,
+    body[data-state="ready"] .only-loading,
+    body[data-state="ready"] .only-error,
+    body[data-state="empty"] .only-ready,
+    body[data-state="empty"] .only-loading,
+    body[data-state="empty"] .only-error,
+    body[data-state="loading"] .only-ready,
+    body[data-state="loading"] .only-empty,
+    body[data-state="loading"] .only-error,
+    body[data-state="error"] .only-ready,
+    body[data-state="error"] .only-empty,
+    body[data-state="error"] .only-loading {
+      display: none;
+    }
+
+    @media (hover: hover) {
+      .nav-list a:hover,
+      .nav-list button:hover,
+      .wordmark a:hover {
+        color: var(--text-primary);
+      }
+
+      .card:hover {
+        border-color: var(--accent-secondary);
+      }
+
+      .dev-chrome button:hover {
+        border-color: var(--text-on-dark);
+      }
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 768px) {
+      :root {
+        --space-section: 80px;
+      }
+
+      .shell {
+        width: min(var(--content), calc(100% - 2 * var(--space-24)));
+      }
+
+      .site-header .shell,
+      .presentation,
+      .card,
+      .cats,
+      .band-head {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .presentation,
+      .cats {
+        gap: var(--space-24);
+      }
+
+      .display {
+        font-size: 40px;
+      }
+
+      .section-title,
+      .band h2 {
+        font-size: 28px;
+      }
+
+      .nav-list {
+        gap: 0;
+      }
+
+      .plate {
+        min-height: 220px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body data-state="ready">
+  <div class="dev-chrome">
+    <p>Prova de estados. Esta barra não faz parte do produto.</p>
+    <div class="dev-row" role="toolbar" aria-label="Estados da home">
+      <button type="button" data-set-state="ready" aria-pressed="true">Conteúdo</button>
+      <button type="button" data-set-state="empty" aria-pressed="false">Vazio</button>
+      <button type="button" data-set-state="loading" aria-pressed="false">A carregar</button>
+      <button type="button" data-set-state="error" aria-pressed="false">Erro</button>
+    </div>
+    <details>
+      <summary>Decisões deste ficheiro</summary>
+      <ul>
+        <li>Estrutura da home autenticada: cabeçalho, apresentação, dois cards, faixa, uma atualização, rodapé.</li>
+        <li>Fundo em gradiente de #F4F2FC para #FFEFF7. As fotos e o banner saem.</li>
+        <li>Acento #E00060 e apoio #A99BF2, só nesta prova visual.</li>
+        <li>Faixa escura no lugar do banner, com as categorias do seed: 3 + 3 + 3 = 9. Vazio: 0 + 0 + 0 = 0.</li>
+        <li>Breakpoint 768px. Poppins. Data repetida 27/01/2025, 23h00, como em TheWelcome.vue.</li>
+      </ul>
+    </details>
+  </div>
+
+  <header class="site-header">
+    <div class="shell">
+      <p class="wordmark"><a href="/"><img src="conecta-logo.svg" alt="Conecta Huggy" width="169" height="25"></a></p>
+      <nav aria-label="Secções">
+        <ul class="nav-list">
+          <li><a href="/forum">Fórum</a></li>
+          <li><a href="/articles">Artigos</a></li>
+          <li><a href="/content">Conteúdos</a></li>
+          <li><a href="/preference">Preferências</a></li>
+          <li><button type="button">Sair</button></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main id="conteudo" aria-busy="false">
+    <div class="shell">
+      <section class="presentation" aria-labelledby="boas-vindas">
+        <div>
+          <h1 class="display" id="boas-vindas">Bem-vindo a Conecta Huggy</h1>
+          <p class="lede">Melhorar o relacionamento entre pessoas e organizações, independente do canal, este é o nosso propósito.</p>
+        </div>
+        <div class="plate" aria-hidden="true">
+          <span class="disc disc--accent">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 16.5v-1.2A3.3 3.3 0 0 1 8.3 12h1.4" />
+              <path d="M19 16.5v-1.2A3.3 3.3 0 0 0 15.7 12h-1.4" />
+              <circle cx="9" cy="8" r="2.2" />
+              <circle cx="15" cy="8" r="2.2" />
+              <path d="M8 19.5h8" />
+            </svg>
+          </span>
+        </div>
+      </section>
+    </div>
+
+    <div class="shell">
+      <section aria-labelledby="dentro">
+        <h2 class="section-title" id="dentro">Fique por dentro do que acontece</h2>
+        <p class="section-copy">Interaja com outros clientes iFood nos assuntos mais quentes do momento.</p>
+
+        <div class="stack only-ready">
+          <article class="card">
+            <div class="card-media">
+              <span class="disc disc--lilac" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 8.5h10M7 12h10M7 15.5h6" />
+                  <rect x="4" y="4" width="16" height="16" rx="3" />
+                </svg>
+              </span>
+            </div>
+            <div class="card-body">
+              <h3>Construindo Relacionamentos Duradouros</h3>
+              <p>O papel do Customer Success no sucesso do cliente.</p>
+              <div class="author">
+                <span class="disc disc--sm disc--veil" aria-hidden="true">A</span>
+                <div>
+                  <span class="author-name">por Ana</span>
+                  <small class="num">27/01/2025 — 23h00</small>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-media">
+              <span class="disc disc--dark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 16.5c2.2-2 4.2-3 7-3s4.8 1 7 3" />
+                  <circle cx="12" cy="8.5" r="2.4" />
+                  <path d="M4 19h16" />
+                </svg>
+              </span>
+            </div>
+            <div class="card-body">
+              <h3>A Evolução do Atendimento Digital</h3>
+              <p>Como o digital transformou o atendimento.</p>
+              <div class="author">
+                <span class="disc disc--sm disc--accent" aria-hidden="true">A</span>
+                <div>
+                  <span class="author-name">por Ana</span>
+                  <small class="num">27/01/2025 — 23h00</small>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <p class="notice only-empty">Ainda não há artigos nesta comunidade.</p>
+
+        <div class="skeleton only-loading" aria-hidden="true">
+          <div class="bone-card"></div>
+          <div class="bone bone--title"></div>
+          <div class="bone bone--line"></div>
+          <div class="bone bone--short"></div>
+        </div>
+
+        <p class="notice notice--error only-error" role="alert">Não foi possível carregar os artigos. Tente outra vez dentro de momentos.</p>
+      </section>
+    </div>
+
+    <div class="shell">
+      <section class="band" aria-labelledby="categorias">
+        <div class="band-head">
+          <h2 id="categorias">Categorias</h2>
+          <p class="band-total only-ready"><span class="num">9</span> artigos</p>
+          <p class="band-total only-empty"><span class="num">0</span> artigos</p>
+        </div>
+        <ul class="cats only-ready">
+          <li>
+            <span class="disc disc--sm disc--accent" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 5v2M12 17v2M5 12h2M17 12h2" stroke-linecap="round"/></svg>
+            </span>
+            <div>
+              <strong>Customer Success</strong>
+              <span><span class="num">3</span> artigos</span>
+            </div>
+          </li>
+          <li>
+            <span class="disc disc--sm disc--lilac" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 16.5V8.5l6-3 6 3v8l-6 3-6-3z"/></svg>
+            </span>
+            <div>
+              <strong>Atendimento Digital</strong>
+              <span><span class="num">3</span> artigos</span>
+            </div>
+          </li>
+          <li>
+            <span class="disc disc--sm disc--veil" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 15.5 9 8l3 4 2-2 5 5.5"/></svg>
+            </span>
+            <div>
+              <strong>Marketing de Vendas</strong>
+              <span><span class="num">3</span> artigos</span>
+            </div>
+          </li>
+        </ul>
+        <ul class="cats only-empty">
+          <li>
+            <span class="disc disc--sm disc--accent" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 5v2M12 17v2M5 12h2M17 12h2" stroke-linecap="round"/></svg>
+            </span>
+            <div>
+              <strong>Customer Success</strong>
+              <span><span class="num">0</span> artigos</span>
+            </div>
+          </li>
+          <li>
+            <span class="disc disc--sm disc--lilac" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 16.5V8.5l6-3 6 3v8l-6 3-6-3z"/></svg>
+            </span>
+            <div>
+              <strong>Atendimento Digital</strong>
+              <span><span class="num">0</span> artigos</span>
+            </div>
+          </li>
+          <li>
+            <span class="disc disc--sm disc--veil" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 15.5 9 8l3 4 2-2 5 5.5"/></svg>
+            </span>
+            <div>
+              <strong>Marketing de Vendas</strong>
+              <span><span class="num">0</span> artigos</span>
+            </div>
+          </li>
+        </ul>
+        <div class="skeleton only-loading" aria-hidden="true">
+          <div class="bone bone--title"></div>
+          <div class="bone bone--line"></div>
+        </div>
+        <p class="notice notice--error only-error" role="alert">Não foi possível carregar as categorias.</p>
+      </section>
+    </div>
+
+    <div class="shell">
+      <section aria-labelledby="atualizacoes">
+        <h2 class="section-title" id="atualizacoes">Últimas atualizações</h2>
+        <div class="stack only-ready">
+          <article class="card">
+            <div class="card-media">
+              <span class="disc disc--veil" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 15.5 9 8l3 4 2-2 5 5.5" />
+                  <path d="M4 19h16" />
+                </svg>
+              </span>
+            </div>
+            <div class="card-body">
+              <h3>Estratégias de Captura de Leads</h3>
+              <p>Como atrair o público certo.</p>
+              <div class="author">
+                <span class="disc disc--sm disc--lilac" aria-hidden="true">A</span>
+                <div>
+                  <span class="author-name">por Ana</span>
+                  <small class="num">27/01/2025 — 23h00</small>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+        <p class="notice only-empty">Ainda não há atualizações.</p>
+        <div class="skeleton only-loading" aria-hidden="true">
+          <div class="bone-card"></div>
+          <div class="bone bone--short"></div>
+        </div>
+        <p class="notice notice--error only-error" role="alert">Não foi possível carregar as atualizações.</p>
+      </section>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell">
+      <span class="disc disc--sm disc--accent" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="4"/></svg>
+      </span>
+      <p>Conecta Huggy — <span class="num">2026</span></p>
+    </div>
+  </footer>
+
+  <script>
+    const main = document.getElementById("conteudo");
+    const buttons = document.querySelectorAll("[data-set-state]");
+
+    function setState(state) {
+      document.body.dataset.state = state;
+      main.setAttribute("aria-busy", state === "loading" ? "true" : "false");
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.setState === state ? "true" : "false");
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setState(button.dataset.setState));
+    });
+  </script>
+</body>
+</html>

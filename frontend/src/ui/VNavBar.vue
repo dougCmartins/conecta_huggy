@@ -1,20 +1,31 @@
 <template>
   <nav class="nav-content">
     <div class="nav-content--img">
-      <a href="/home">
+      <a href="/" @click.prevent="router.push({ name: 'home' })">
         <picture>
           <source srcset="@/assets/img/simbolo.svg" media="(max-width: 768px)" />
-          <img src="@/assets/img/logo.svg" alt="Conecta Huggy logo" />
+          <img src="@/assets/img/logo.svg" alt="Conecta Huggy" />
         </picture>
       </a>
     </div>
     <ul class="nav-content--list">
       <li class="nav-content--list-item" :key="key" v-for="(listItem, key) of listItems">
-        <a class="nav-content--list-item-link"
-           :href="listItem.type !== 'button' ? listItem.link : undefined"
-           @click="handleItemAction(listItem)">
+        <button
+          v-if="listItem.type === 'button'"
+          type="button"
+          class="nav-content--list-item-link"
+          @click="handleItemAction(listItem)"
+        >
           {{ listItem.title }}
-        </a>
+        </button>
+        <router-link
+          v-else
+          class="nav-content--list-item-link"
+          :to="{ name: listItem.link }"
+          :aria-current="route.name === listItem.link ? 'page' : undefined"
+        >
+          {{ listItem.title }}
+        </router-link>
       </li>
     </ul>
   </nav>
@@ -23,7 +34,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { authStore } from "@/Auth/authStore.ts";
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { ActionRoute } from '@/router/ActionRoute.ts'
 
 type ListItem = {
@@ -61,6 +72,7 @@ const listItems = ref<ListItem[]>([
 ]);
 
 const auth = authStore();
+const route = useRoute();
 const router = useRouter();
 const handleLogout = () => {
   auth.clearToken();
@@ -70,10 +82,7 @@ const handleLogout = () => {
 const handleItemAction = (item: ListItem) => {
   if (item.type === 'button') {
     handleLogout()
-    return;
   }
-
-  router.push({ name: item.link });
 }
 </script>
 
@@ -93,22 +102,31 @@ const handleItemAction = (item: ListItem) => {
     color: var(--vt-c-text-dark-4);
   }
 
+  width: min(var(--content-width), 100%);
+  margin-inline: auto;
+  padding-inline: var(--space-48);
+
+  @media (max-width: 768px) {
+    padding-inline: var(--space-24);
+  }
+
   &--img {
     display: flex;
     justify-content: flex-start;
+    a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+    }
     @media (max-width: 480px) {
       justify-content: center;
-      margin-bottom: 10px;
+      margin-bottom: var(--space-8);
     }
     img {
-      max-width: 100px;
-      max-height: 100px;
-      width: 100%;
-      height: 100%;
-
-      @media (max-width: 768px) {
-        max-width: 40px;
-      }
+      display: block;
+      height: 23px;
+      width: auto;
+      max-width: none;
     }
   }
 
@@ -116,6 +134,7 @@ const handleItemAction = (item: ListItem) => {
     display: inline-flex;
     align-items: center;
     justify-content: flex-end;
+    gap: var(--space-8);
     list-style: none;
     padding: 0;
     margin: 0;
@@ -125,25 +144,39 @@ const handleItemAction = (item: ListItem) => {
     }
 
     &-item {
-      color: var(--vt-c-text-dark-3);
-      padding: 0 14px;
-      @media (max-width: 480px) {
-        padding: 0 4px;
-      }
+      color: var(--text-muted);
       &:hover {
         cursor: pointer;
         color: var(--vt-c-text-brand-1);
       }
 
       &-link {
-        color: var(--vt-c-text-dark-3);
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        padding: var(--space-8) var(--space-12);
+        border-radius: var(--radius-pill);
+        color: var(--text-muted);
+        font-size: 15px;
+        font-weight: 500;
+        text-decoration: none;
         &:hover {
-          color: var(--vt-c-text-brand-2) !important;
+          color: var(--vt-c-text-brand-1);
         }
 
-        text-decoration: none;
+        &[aria-current="page"] {
+          color: var(--text-primary);
+          font-weight: 600;
+        }
       }
     }
+  }
+
+  button.nav-content--list-item-link {
+    background: none;
+    border: 0;
+    font: inherit;
+    cursor: pointer;
   }
 }
 </style>

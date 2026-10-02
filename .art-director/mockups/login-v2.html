@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conecta Huggy — login v2 (mockup)</title>
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=poppins:400,500,600,700">
+  <style>
+    /*
+      Decisões deste ficheiro (também em improvement-plan.md):
+      - Ecrã: login (/login). Campos e botão "Entrar" como em Login.vue.
+      - O símbolo de 30px e o background-1.jpg saem. No topo do card fica
+        o wordmark "Conecta Huggy".
+      - Fundo: o mesmo gradiente da home, surface #F4F2FC → véu #FFEFF7.
+      - Card: max-width 420px (o actual é 400px), raio 20px, sombra
+        0 8px 32px rgba(22, 16, 40, 0.06), padding 32px.
+      - Acento do botão: #E00060, pedido para esta prova. O projecto
+        continua com o outline #f8006d. Hover usa a amostra mais escura
+        #D01060. O botão não leva sombra.
+      - O traço acima do botão em Login.vue não entra.
+      - Inputs ficam rectangulares, raio 12px, texto 16px. Não são pills.
+      - O link "Não tens conta? Regista-te" não existe no login actual.
+        Aponta para /register. O resto dos rótulos mantém a cópia da app:
+        "E-mail:", "Senha:", "Entrar".
+      - Erro: "Erro ao realizar login", o fallback de authStore.ts,
+        por baixo do botão. Cor #7A1F33, a mesma da prova da home.
+        A referência não tem papel de erro.
+      - A carregar: o botão fica disabled e o formulário aria-busy.
+        O texto do botão continua "Entrar". O botão ocupa a largura do card.
+      - O estado Foco desenha o anel no e-mail. Um clique de rato no botão
+        de prova não activa :focus-visible; o anel do teclado mantém-se.
+      - Normal é o formulário vazio. Não há números nesta tela.
+      - Poppins, como em base.scss. Breakpoint 768px: o card usa
+        a largura da página menos 48px, sem passar de 420px.
+      - A barra de estados não vai para o produto.
+    */
+
+    :root {
+      --surface: #F4F2FC;
+      --surface-veil: #FFEFF7;
+      --surface-card: #FFFFFF;
+      --border: #E4E0F0;
+      --text-primary: #161222;
+      --text-on-accent: #FFFFFF;
+      --text-muted: #6E6878;
+      --accent: #E00060;
+      --accent-pressed: #D01060;
+      --color-error: #7A1F33;
+      --shadow-card: 0 8px 32px rgba(22, 16, 40, 0.06);
+      --radius-card: 20px;
+      --radius-field: 12px;
+      --radius-pill: 999px;
+      --space-8: 8px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-24: 24px;
+      --space-32: 32px;
+      --space-48: 48px;
+      --font: "Poppins", "Source Sans Pro", sans-serif;
+      --card: 420px;
+      --bp: 768px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text-primary);
+      background: linear-gradient(165deg, var(--surface) 0%, #F2F1FF 46%, var(--surface-veil) 100%);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+
+    .dev-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      gap: var(--space-12);
+      padding: var(--space-12) var(--space-24);
+      background: var(--text-primary);
+      color: var(--text-on-accent);
+    }
+
+    .dev-chrome p,
+    .dev-chrome summary {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .dev-chrome summary {
+      cursor: pointer;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .dev-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+    }
+
+    .dev-chrome button {
+      min-height: 44px;
+      padding: var(--space-8) var(--space-16);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .dev-chrome button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .dev-chrome details ul {
+      margin: var(--space-8) 0 0;
+      padding-left: 1.2rem;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .stage {
+      display: grid;
+      place-items: center;
+      min-height: calc(100vh - 140px);
+      padding: var(--space-48) var(--space-24);
+    }
+
+    .card {
+      width: min(var(--card), 100%);
+      padding: var(--space-32);
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+    }
+
+    .wordmark {
+      margin: 0 0 var(--space-32);
+      text-align: center;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-24);
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-8);
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+
+    input {
+      width: 100%;
+      min-height: 44px;
+      padding: var(--space-12) var(--space-16);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-field);
+      background: var(--surface-card);
+      color: var(--text-primary);
+      font: inherit;
+      font-size: 16px;
+    }
+
+    input:focus {
+      outline: none;
+    }
+
+    input:focus-visible,
+    body[data-state="focus"] #email {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-color: var(--accent);
+    }
+
+    input[aria-invalid="true"] {
+      border-color: var(--color-error);
+    }
+
+    .submit {
+      min-height: 44px;
+      padding: var(--space-12) var(--space-24);
+      border: 0;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .submit:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .error {
+      display: none;
+      margin: 0;
+      text-align: center;
+      color: var(--color-error);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    body[data-state="error"] .error {
+      display: block;
+    }
+
+    .register {
+      margin: var(--space-16) 0 0;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .register a {
+      color: var(--accent);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+    }
+
+    @media (hover: hover) {
+      .submit:hover:not(:disabled) {
+        background: var(--accent-pressed);
+      }
+
+      .register a:hover {
+        text-decoration: underline;
+      }
+
+      .dev-chrome button:hover {
+        border-color: var(--text-on-accent);
+      }
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .dev-chrome a:focus-visible,
+    .dev-chrome button:focus-visible,
+    .dev-chrome summary:focus-visible {
+      outline-color: var(--text-on-accent);
+    }
+
+    @media (max-width: 768px) {
+      .stage {
+        padding: var(--space-32) var(--space-24);
+        align-items: start;
+      }
+
+      .card {
+        width: min(var(--card), 100%);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body data-state="normal">
+  <div class="dev-chrome">
+    <p>Prova de estados. Esta barra não faz parte do produto.</p>
+    <div class="dev-row" role="toolbar" aria-label="Estados do login">
+      <button type="button" data-set-state="normal" aria-pressed="true">Normal</button>
+      <button type="button" data-set-state="loading" aria-pressed="false">A carregar</button>
+      <button type="button" data-set-state="error" aria-pressed="false">Erro</button>
+      <button type="button" data-set-state="focus" aria-pressed="false">Foco</button>
+    </div>
+    <details>
+      <summary>Decisões deste ficheiro</summary>
+      <ul>
+        <li>Login actual, sem a imagem de fundo. Gradiente de #F4F2FC para #FFEFF7.</li>
+        <li>Card de 420px, raio 20px, sombra suave. Wordmark no lugar do símbolo.</li>
+        <li>Botão pill em #E00060. Erro: "Erro ao realizar login", por baixo do botão.</li>
+        <li>O link para /register não existe hoje no login. Os rótulos E-mail, Senha e Entrar mantêm-se.</li>
+      </ul>
+    </details>
+  </div>
+
+  <div class="stage">
+    <section class="card" aria-labelledby="titulo-login">
+      <h1 class="wordmark" id="titulo-login">Conecta Huggy</h1>
+      <form id="login-form" novalidate>
+        <div class="field">
+          <label for="email">E-mail:</label>
+          <input id="email" name="email" type="email" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="password">Senha:</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="submit" id="submit" type="submit">Entrar</button>
+        <p class="error" id="login-error" role="alert">Erro ao realizar login</p>
+      </form>
+      <p class="register"><a href="/register">Não tens conta? Regista-te</a></p>
+    </section>
+  </div>
+
+  <script>
+    const form = document.getElementById("login-form");
+    const submit = document.getElementById("submit");
+    const email = document.getElementById("email");
+    const password = document.getElementById("password");
+    const buttons = document.querySelectorAll("[data-set-state]");
+
+    function setState(state) {
+      document.body.dataset.state = state;
+      const loading = state === "loading";
+      const invalid = state === "error";
+
+      form.setAttribute("aria-busy", loading ? "true" : "false");
+      submit.disabled = loading;
+      email.setAttribute("aria-invalid", invalid ? "true" : "false");
+      password.setAttribute("aria-invalid", invalid ? "true" : "false");
+
+      if (invalid) {
+        email.setAttribute("aria-describedby", "login-error");
+        password.setAttribute("aria-describedby", "login-error");
+      } else {
+        email.removeAttribute("aria-describedby");
+        password.removeAttribute("aria-describedby");
+      }
+
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.setState === state ? "true" : "false");
+      });
+
+      if (state === "focus") {
+        email.focus();
+      }
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setState(button.dataset.setState));
+    });
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+    });
+  </script>
+</body>
+</html>

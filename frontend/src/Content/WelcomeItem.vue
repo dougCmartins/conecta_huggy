@@ -15,11 +15,11 @@
 <style lang="scss">
 .welcome-item {
   display: flex;
-  gap: 30px;
+  gap: var(--space-32);
   flex: 1 1 100%;
 
   &--details {
-    margin-left: 1rem;
+    margin-left: var(--space-16);
   }
 }
 </style>

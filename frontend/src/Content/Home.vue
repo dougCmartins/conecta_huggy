@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import TheWelcome from './TheWelcome.vue'
-import VTemplate from "@/ui/VTemplate.vue";
 </script>
 
 <template>
-  <v-template>
-    <the-welcome/>
-  </v-template>
+  <the-welcome/>
 </template>
 
 <style scoped>

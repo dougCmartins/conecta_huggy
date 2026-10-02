@@ -1,6 +1,6 @@
 <template>
 <div class="card card-base">
-  <div class="card-base--img">
+  <div v-if="$slots['content-img']" class="card-base--img">
     <slot name="content-img" />
   </div>
   <div class="card-base--items">
@@ -8,7 +8,10 @@
     <div class="card-base--item-text">
       <slot name="content-text"></slot>
     </div>
-    <div class="card-base--item-author">
+    <div
+      v-if="$slots['content-author'] || $slots['content-author-details']"
+      class="card-base--item-author"
+    >
       <slot name="content-author"></slot>
       <div class="card-base--item-author-details">
         <slot name="content-author-details"></slot>
@@ -22,13 +25,13 @@
 .card {
   &-base {
     display: flex;
-    gap: 20px;
+    gap: var(--space-24);
     flex-wrap: wrap;
-    margin-bottom: 1rem;
-    background-color: #fff;
-    border: 1px solid #d7d7d7;
-    border-radius: 15px;
-    box-shadow: 2px 9px 49px -17px rgba(0,0,0,0.3);
+    margin-bottom: var(--space-16);
+    background-color: var(--surface-card);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
     min-height: 204px;
     overflow: hidden;
 
@@ -40,6 +43,10 @@
       flex: 1 1 40%;
       min-width: 300px;
       position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--surface);
 
       @media (max-width: 991px) {
         flex: 1 1 100%;
@@ -50,17 +57,17 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        border-radius: 15px;
+        border-radius: var(--radius-card);
 
         @media (max-width: 768px) {
-          border-radius: 15px 15px 0 0;
+          border-radius: var(--radius-card) var(--radius-card) 0 0;
         }
       }
     }
 
     &--items {
       flex: 1 1 50%;
-      padding: 20px;
+      padding: var(--space-24);
       display: flex;
       flex-direction: column;
       justify-content: space-evenly;
@@ -71,7 +78,7 @@
     }
     &--item {
       &-text {
-        margin-bottom: 20px;
+        margin-bottom: var(--space-24);
         @media (max-width: 991px) {
           text-align: center;
         }
@@ -98,14 +105,14 @@
         }
 
         &-details {
-          margin-left: 5px;
+          margin-left: var(--space-8);
         }
 
         img {
           height: 44px;
           width: 44px;
           border-radius: 100%;
-          margin-right: 9px;
+          margin-right: var(--space-12);
           object-fit: cover;
         }
       }

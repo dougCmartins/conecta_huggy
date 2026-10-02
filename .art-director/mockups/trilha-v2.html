@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conecta Huggy — trilha v2 (mockup)</title>
+  <link rel="stylesheet" href="https://fonts.bunny.net/css?family=poppins:400,500,600,700">
+  <style>
+    /*
+      Decisões deste ficheiro (também em improvement-plan.md):
+      - Ecrã /content. Cabeçalho da área autenticada. Nav marca Conteúdos.
+      - A captura actual (órbita do mascote, thumbs do player, faixa com
+        ícones de redes) não entra. hyggor-2.svg e banner.png ficam de fora.
+      - Título e subtítulo são os de Trail.vue.
+      - A ilustração do hero é um disco com ícone de play. Não é o mascote.
+      - Os 10 cards seguem a ordem dos iframes de Trail.vue.
+        5 antes da faixa + 5 depois = 10.
+        jU39MmxPfCU e GmShhgrk2UQ repetem-se. 10 − 2 = 8 links únicos.
+      - Títulos e canal vêm do oEmbed desses links. Não há duração no oEmbed
+        nem em Trail.vue, por isso a meta é só o canal.
+      - Cada card abre a página de visionamento, não o embed.
+        Trail.vue embute o player.
+      - A faixa usa surface-veil. O accent fica no CTA.
+        O botão não tem URL: banner.png também não tem.
+        O texto do botão mais o badge lêem "Teste Grátis por 7 dias".
+      - Grelha: 3 colunas a partir de 1025px, 2 entre 769px e 1024px,
+        1 coluna até 768px.
+      - Cada item da grelha é flex. O card e o link ocupam flex: 1,
+        por isso a linha fica com a mesma altura. O título cresce
+        e o badge com a meta ficam alinhados em baixo.
+      - Vazio e erro escondem grelhas e faixa. O hero fica.
+        O erro não existe na app: Trail.vue é markup estático.
+      - A barra de estados não vai para o produto.
+    */
+
+    :root {
+      --surface: #F4F2FC;
+      --surface-veil: #FFEFF7;
+      --surface-card: #FFFFFF;
+      --surface-dark: #120A22;
+      --border: #E4E0F0;
+      --text-primary: #161222;
+      --text-on-accent: #FFFFFF;
+      --text-muted: #6E6878;
+      --accent: #E00060;
+      --accent-pressed: #D01060;
+      --accent-secondary: #A99BF2;
+      --color-error: #7A1F33;
+      --shadow-card: 0 8px 32px rgba(22, 16, 40, 0.06);
+      --radius-card: 20px;
+      --radius-pill: 999px;
+      --space-8: 8px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-24: 24px;
+      --space-32: 32px;
+      --space-48: 48px;
+      --space-section: 96px;
+      --font: "Poppins", "Source Sans Pro", sans-serif;
+      --shell: 1200px;
+      --bp: 768px;
+      --bp-wide: 1024px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      color: var(--text-primary);
+      background: linear-gradient(165deg, var(--surface) 0%, #F2F1FF 46%, var(--surface-veil) 100%);
+      font-family: var(--font);
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+      letter-spacing: 0;
+    }
+
+    .num {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .dev-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: grid;
+      gap: var(--space-12);
+      padding: var(--space-12) var(--space-24);
+      background: var(--text-primary);
+      color: var(--text-on-accent);
+    }
+
+    .dev-chrome p,
+    .dev-chrome summary {
+      margin: 0;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .dev-chrome summary {
+      cursor: pointer;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+    }
+
+    .dev-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+    }
+
+    .dev-chrome button {
+      min-height: 44px;
+      padding: var(--space-8) var(--space-16);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-pill);
+      background: transparent;
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .dev-chrome button[aria-pressed="true"] {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .dev-chrome details ul {
+      margin: var(--space-8) 0 0;
+      padding-left: 1.2rem;
+      font-size: 13px;
+      line-height: 1.5;
+      color: rgba(255, 255, 255, 0.72);
+    }
+
+    .page {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .shell {
+      width: min(var(--shell), calc(100% - 2 * var(--space-48)));
+      margin-inline: auto;
+    }
+
+    .site-header {
+      padding-block: var(--space-24);
+    }
+
+    .site-header .shell,
+    .nav-list {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-24);
+    }
+
+    .wordmark {
+      margin: 0;
+      line-height: 0;
+    }
+
+    .wordmark a {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .wordmark img {
+      display: block;
+      height: 28px;
+      width: auto;
+    }
+
+    .nav-list {
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      gap: var(--space-8);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .nav-list a,
+    .nav-list button {
+      display: inline-flex;
+      align-items: center;
+      min-height: 44px;
+      padding: var(--space-8) var(--space-12);
+      border: 0;
+      background: transparent;
+      color: var(--text-muted);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 500;
+      text-decoration: none;
+      border-radius: var(--radius-pill);
+      cursor: pointer;
+    }
+
+    .nav-list a[aria-current="page"] {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    main {
+      flex: 1;
+      padding-bottom: var(--space-section);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: var(--space-48);
+      margin-bottom: var(--space-section);
+    }
+
+    .hero h1 {
+      margin: 0 0 var(--space-12);
+      font-size: 40px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 36rem;
+      color: var(--text-muted);
+      font-size: 18px;
+    }
+
+    .hero-mark {
+      display: grid;
+      place-items: center;
+      width: 128px;
+      height: 128px;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--text-on-accent);
+    }
+
+    .hero-mark svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      align-items: stretch;
+      gap: var(--space-24);
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .grid > li {
+      display: flex;
+    }
+
+    .band,
+    .band + .grid {
+      margin-top: var(--space-section);
+    }
+
+    .card {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      width: 100%;
+      background: var(--surface-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+    }
+
+    .card a {
+      display: flex;
+      flex: 1 1 auto;
+      flex-direction: column;
+      gap: var(--space-12);
+      padding-bottom: var(--space-24);
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .thumb {
+      position: relative;
+      aspect-ratio: 16 / 9;
+      background: var(--surface-dark);
+    }
+
+    .thumb img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .play {
+      position: absolute;
+      inset: 0;
+      margin: auto;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--text-on-accent);
+    }
+
+    .play svg {
+      width: 18px;
+      height: 18px;
+      margin-left: 2px;
+    }
+
+    .card h2,
+    .meta {
+      margin: 0;
+      padding-inline: var(--space-24);
+    }
+
+    .card h2 {
+      flex: 1 1 auto;
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+    }
+
+    .watch {
+      align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      margin-left: var(--space-24);
+      padding: 0 var(--space-12);
+      border-radius: var(--radius-pill);
+      background: var(--surface);
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .meta {
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .band {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--space-32);
+      padding: var(--space-32);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      background: var(--surface-veil);
+    }
+
+    .band h2 {
+      margin: 0;
+      max-width: 28rem;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.2;
+    }
+
+    .cta {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-12);
+      min-height: 44px;
+      padding: var(--space-8) var(--space-8) var(--space-8) var(--space-24);
+      border: 0;
+      border-radius: var(--radius-pill);
+      background: var(--accent);
+      color: var(--text-on-accent);
+      font: inherit;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .cta-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      padding: 0 var(--space-12);
+      border-radius: var(--radius-pill);
+      background: var(--text-on-accent);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .notice {
+      display: none;
+      margin: 0;
+      padding: var(--space-32);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      background: var(--surface-card);
+    }
+
+    .notice--error {
+      border-color: var(--color-error);
+      color: var(--color-error);
+    }
+
+    .bones {
+      display: none;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-24);
+    }
+
+    .bone-card {
+      min-height: 240px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    body[data-state="ready"] .only-empty,
+    body[data-state="ready"] .only-loading,
+    body[data-state="ready"] .only-error,
+    body[data-state="empty"] .only-ready,
+    body[data-state="empty"] .only-loading,
+    body[data-state="empty"] .only-error,
+    body[data-state="loading"] .only-ready,
+    body[data-state="loading"] .only-empty,
+    body[data-state="loading"] .only-error,
+    body[data-state="error"] .only-ready,
+    body[data-state="error"] .only-empty,
+    body[data-state="error"] .only-loading {
+      display: none;
+    }
+
+    body[data-state="empty"] .only-empty,
+    body[data-state="error"] .only-error {
+      display: block;
+    }
+
+    body[data-state="loading"] .only-loading {
+      display: grid;
+    }
+
+    .site-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      background: var(--surface-card);
+    }
+
+    .site-footer .shell {
+      display: flex;
+      justify-content: center;
+      padding-block: var(--space-32);
+    }
+
+    .site-footer p {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    @media (hover: hover) {
+      .card:hover {
+        border-color: var(--accent-secondary);
+      }
+
+      .cta:hover {
+        background: var(--accent-pressed);
+      }
+
+      .nav-list a:hover,
+      .nav-list button:hover,
+      .wordmark a:hover {
+        color: var(--text-primary);
+      }
+
+      .dev-chrome button:hover {
+        border-color: var(--text-on-accent);
+      }
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    summary:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+    }
+
+    .dev-chrome button:focus-visible,
+    .dev-chrome summary:focus-visible {
+      outline-color: var(--text-on-accent);
+    }
+
+    @media (max-width: 1024px) {
+      .grid,
+      .bones {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 768px) {
+      .shell {
+        width: min(var(--shell), calc(100% - 2 * var(--space-24)));
+      }
+
+      .site-header .shell,
+      .hero,
+      .band {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .site-header .shell {
+        display: flex;
+      }
+
+      .nav-list {
+        justify-content: flex-start;
+      }
+
+      .hero {
+        display: flex;
+      }
+
+      .hero h1,
+      .band h2 {
+        font-size: 32px;
+      }
+
+      .hero-mark {
+        width: 96px;
+        height: 96px;
+      }
+
+      .grid,
+      .bones {
+        grid-template-columns: 1fr;
+      }
+
+      .cta {
+        justify-content: space-between;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition: none !important;
+        animation: none !important;
+      }
+    }
+  </style>
+</head>
+<body data-state="ready">
+  <div class="dev-chrome">
+    <p>Prova de estados. Esta barra não faz parte do produto.</p>
+    <div class="dev-row" role="toolbar" aria-label="Estados da trilha">
+      <button type="button" data-set-state="ready" aria-pressed="true">Conteúdo</button>
+      <button type="button" data-set-state="empty" aria-pressed="false">Vazio</button>
+      <button type="button" data-set-state="loading" aria-pressed="false">A carregar</button>
+      <button type="button" data-set-state="error" aria-pressed="false">Erro</button>
+    </div>
+    <details>
+      <summary>Decisões deste ficheiro</summary>
+      <ul>
+        <li>10 cards na ordem de Trail.vue. 5 antes da faixa + 5 depois = 10.</li>
+        <li>2 links repetem-se. 10 − 2 = 8 vídeos únicos.</li>
+        <li>Títulos do oEmbed. Meta: canal. Sem duração.</li>
+        <li>Faixa em surface-veil. O CTA não tem URL na app.</li>
+      </ul>
+    </details>
+  </div>
+
+  <div class="page">
+    <header class="site-header">
+      <div class="shell">
+        <p class="wordmark"><a href="/"><img src="conecta-logo.svg" alt="Conecta Huggy" width="169" height="25"></a></p>
+        <nav aria-label="Secções">
+          <ul class="nav-list">
+            <li><a href="/forum">Fórum</a></li>
+            <li><a href="/articles">Artigos</a></li>
+            <li><a href="/content" aria-current="page">Conteúdos</a></li>
+            <li><a href="/preference">Preferências</a></li>
+            <li><button type="button">Sair</button></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <main id="conteudo" aria-busy="false">
+      <div class="shell">
+        <section class="hero">
+          <div>
+            <h1>Trilha de Conteúdos da Conecta Huggy</h1>
+            <p>Conteúdos para acelerar o sucesso do seu negócio.</p>
+          </div>
+          <div class="hero-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+              <path d="M8 5.5v13l11-6.5-11-6.5z"></path>
+            </svg>
+          </div>
+        </section>
+
+        <p class="notice only-empty">Ainda não há vídeos.</p>
+        <p class="notice notice--error only-error" role="alert">Não foi possível carregar os vídeos.</p>
+        <div class="bones only-loading" aria-hidden="true">
+          <div class="bone-card"></div>
+          <div class="bone-card"></div>
+          <div class="bone-card"></div>
+        </div>
+
+        <div class="only-ready">
+          <ul class="grid">
+            <li>
+              <article class="card">
+                <a href="https://www.youtube.com/watch?v=KaKFJu6-J6c" target="_blank" rel="noopener noreferrer">
+                  <div class="thumb">
+                    <img src="https://i.ytimg.com/vi/KaKFJu6-J6c/mqdefault.jpg" alt="">
+                    <span class="play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"></path></svg>
+                    </span>
+                  </div>
+                  <h2>Como Criar Campanhas no WhatsApp e Impulsionar suas Vendas com Huggy + Rotik!</h2>
+                  <span class="watch">Assista no YouTube</span>
+                  <p class="meta">Huggy - Plataforma de Atendimento Digital</p>
+                </a>
+              </article>
+            </li>
+            <li>
+              <article class="card">
+                <a href="https://www.youtube.com/watch?v=jU39MmxPfCU" target="_blank" rel="noopener noreferrer">
+                  <div class="thumb">
+                    <img src="https://i.ytimg.com/vi/jU39MmxPfCU/mqdefault.jpg" alt="">
+                    <span class="play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"></path></svg>
+                    </span>
+                  </div>
+                  <h2>Conheça o novo relatório de conversas do WhatsApp Business</h2>
+                  <span class="watch">Assista no YouTube</span>
+                  <p class="meta">Huggy - Plataforma de Atendimento Digital</p>
+                </a>
+              </article>
+            </li>
+            <li>
+              <article class="card">
+                <a href="https://www.youtube.com/watch?v=itw6rDh6zv0" target="_blank" rel="noopener noreferrer">
+                  <div class="thumb">
+                    <img src="https://i.ytimg.com/vi/itw6rDh6zv0/mqdefault.jpg" alt="">
+                    <span class="play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"></path></svg>
+                    </span>
+                  </div>
+                  <h2>Como Planejar seu Fluxo de Atendimento para Automatizar seu Negócio</h2>
+                  <span class="watch">Assista no YouTube</span>
+                  <p class="meta">Huggy - Plataforma de Atendimento Digital</p>
+                </a>
+              </article>
+            </li>
+            <li>
+              <article class="card">
+                <a href="https://www.youtube.com/watch?v=KlKYWpw1m9E" target="_blank" rel="noopener noreferrer">
+                  <div class="thumb">
+                    <img src="https://i.ytimg.com/vi/KlKYWpw1m9E/mqdefault.jpg" alt="">
+                    <span class="play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"></path></svg>
+                    </span>
+                  </div>
+                  <h2>Como utilizar o ChatGPT em seus atendimentos com a Huggy</h2>
+                  <span class="watch">Assista no YouTube</span>
+                  <p class="meta">Huggy - Plataforma de Atendimento Digital</p>
+                </a>
+              </article>
+            </li>
+            <li>
+              <article class="card">
+                <a href="https://www.youtube.com/watch?v=GmShhgrk2UQ" target="_blank" rel="noopener noreferrer">
+                  <div class="thumb">
+                    <img src="https://i.ytimg.com/vi/GmShhgrk2UQ/mqdefault.jpg" alt="">
+                    <span class="play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"></path></svg>
+                    </span>
+                  </div>
+                  <h2>Como é feita a precificação do WhatsApp Business API</h2>
+                  <span class="watch">Assista no YouTube</span>
+                  <p class="meta">Huggy - Plataforma de Atendimento Digital</p>
+                </a>
+              </article>
+            </li>
+          </ul>
+
+          <section class="band" aria-labelledby="faixa">
+            <h2 id="faixa">Tenha chatbots <span class="num">24/7</span> e esteja sempre pronto para atender</h2>
+            <button type="button" class="cta">
+              Teste Grátis
+              <span class="cta-badge">por <span class="num">7</span> dias</span>
+            </button>
+          </section>
+
+          <ul class="grid">
+            <li>
+              <article class="card">
+                <a href="https://www.youtube.com/watch?v=_bNOBHfgVOM" target="_blank" rel="noopener noreferrer">
+                  <div class="thumb">
+                    <img src="https://i.ytimg.com/vi/_bNOBHfgVOM/mqdefault.jpg" alt="">
+                    <span class="play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"></path></svg>
+                    </span>
+                  </div>
+                  <h2>Como medir conversas iniciadas por anúncios?</h2>
+                  <span class="watch">Assista no YouTube</span>
+                  <p class="meta">Huggy - Plataforma de Atendimento Digital</p>
+                </a>
+              </article>
+            </li>
+            <li>
+              <article class="card">
+                <a href="https://www.youtube.com/watch?v=GmShhgrk2UQ" target="_blank" rel="noopener noreferrer">
+                  <div class="thumb">
+                    <img src="https://i.ytimg.com/vi/GmShhgrk2UQ/mqdefault.jpg" alt="">
+                    <span class="play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"></path></svg>
+                    </span>
+                  </div>
+                  <h2>Como é feita a precificação do WhatsApp Business API</h2>
+                  <span class="watch">Assista no YouTube</span>
+                  <p class="meta">Huggy - Plataforma de Atendimento Digital</p>
+                </a>
+              </article>
+            </li>
+            <li>
+              <article class="card">
+                <a href="https://www.youtube.com/watch?v=AqCupIGevsw" target="_blank" rel="noopener noreferrer">
+                  <div class="thumb">
+                    <img src="https://i.ytimg.com/vi/AqCupIGevsw/mqdefault.jpg" alt="">
+                    <span class="play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"></path></svg>
+                    </span>
+                  </div>
+                  <h2>Como organizar o atendimento e acelerar o crescimento dos negócios</h2>
+                  <span class="watch">Assista no YouTube</span>
+                  <p class="meta">Huggy - Plataforma de Atendimento Digital</p>
+                </a>
+              </article>
+            </li>
+            <li>
+              <article class="card">
+                <a href="https://www.youtube.com/watch?v=jU39MmxPfCU" target="_blank" rel="noopener noreferrer">
+                  <div class="thumb">
+                    <img src="https://i.ytimg.com/vi/jU39MmxPfCU/mqdefault.jpg" alt="">
+                    <span class="play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"></path></svg>
+                    </span>
+                  </div>
+                  <h2>Conheça o novo relatório de conversas do WhatsApp Business</h2>
+                  <span class="watch">Assista no YouTube</span>
+                  <p class="meta">Huggy - Plataforma de Atendimento Digital</p>
+                </a>
+              </article>
+            </li>
+            <li>
+              <article class="card">
+                <a href="https://www.youtube.com/watch?v=ir_ybmTFeio" target="_blank" rel="noopener noreferrer">
+                  <div class="thumb">
+                    <img src="https://i.ytimg.com/vi/ir_ybmTFeio/mqdefault.jpg" alt="">
+                    <span class="play" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5-11-6.5z"></path></svg>
+                    </span>
+                  </div>
+                  <h2>Diferenças entre os tipos de mensagens do WhatsApp</h2>
+                  <span class="watch">Assista no YouTube</span>
+                  <p class="meta">Huggy - Plataforma de Atendimento Digital</p>
+                </a>
+              </article>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <div class="shell">
+        <p>Conecta Huggy — <span class="num">2026</span></p>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    const main = document.getElementById("conteudo");
+    const buttons = document.querySelectorAll("[data-set-state]");
+
+    function setState(state) {
+      document.body.dataset.state = state;
+      main.setAttribute("aria-busy", state === "loading" ? "true" : "false");
+      buttons.forEach((button) => {
+        button.setAttribute("aria-pressed", button.dataset.setState === state ? "true" : "false");
+      });
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setState(button.dataset.setState));
+    });
+  </script>
+</body>
+</html>

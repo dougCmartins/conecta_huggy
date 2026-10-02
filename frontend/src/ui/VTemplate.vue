@@ -8,11 +8,15 @@ import VNavBar from "@/ui/VNavBar.vue";
     <v-nav-bar />
   </v-header>
   <main>
-    <slot />
+    <router-view />
   </main>
   <footer>
-    <img src="@/assets/img/simbolo.svg" alt="image footer">
-    <p>Conecta Huggy - {{new Date().getFullYear()}}</p>
+    <span class="ui-disc ui-disc--sm" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <circle cx="12" cy="12" r="4" />
+      </svg>
+    </span>
+    <p>Conecta Huggy — {{ new Date().getFullYear() }}</p>
   </footer>
 </template>
 
@@ -21,26 +25,35 @@ import VNavBar from "@/ui/VNavBar.vue";
     display: flex;
     flex-direction: column;
     position: relative;
-    padding: 4vmin;
+    width: min(var(--content-width), 100%);
+    margin-inline: auto;
+    padding: 0 var(--space-48) var(--space-section);
+
+    @media (max-width: 768px) {
+      padding-inline: var(--space-24);
+    }
   }
   footer {
-    box-shadow: 2px 9px 49px -17px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    gap: 10px;
-    background-color: #ffffff;
-    min-height: 100px;
-    padding: 15px;
-    margin-top: 5rem;
-    color: var(--vt-c-text-dark-4);
+    gap: var(--space-12);
+    background-color: var(--surface-card);
+    border-top: 1px solid var(--border-soft);
+    padding: var(--space-48) var(--space-24);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
 
-    img {
+    .ui-disc {
       width: 30px;
-      max-width: 100%;
-      height: auto;
-      object-fit: cover;
+      height: 30px;
+
+      svg {
+        width: 16px;
+        height: 16px;
+      }
     }
   }
 </style>

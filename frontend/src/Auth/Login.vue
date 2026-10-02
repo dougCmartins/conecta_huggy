@@ -1,9 +1,7 @@
 <template>
   <div class="login">
     <div class="login--content-form">
-      <div class="login--content-form-text">
-        <img src="../assets/img/simbolo.svg" :alt="`image login}`">
-      </div>
+      <h1 class="wordmark">Conecta Huggy</h1>
       <form @submit.prevent="handleLogin">
         <div class="form">
           <div class="form-item" v-if="hasFormRegister">
@@ -19,8 +17,12 @@
             <input type="password" v-model="password" id="password" required />
           </div>
           <div class="form-item--button">
-            <base-button type="submit" text="Entrar" variant="default-outline" />
+            <base-button type="submit" text="Entrar" variant="default" />
           </div>
+          <p class="switch-account">
+            Não tens conta?
+            <router-link :to="{ name: 'register' }">Regista-te</router-link>
+          </p>
           <p v-if="auth.error" class="error">{{ auth.error }}</p>
         </div>
       </form>
@@ -96,86 +98,98 @@ const handleLogin = async () => {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: url("@/assets/img/background-1.jpg") center center no-repeat;
-  background-size: cover;
+  background: var(--page-gradient);
 
   h1 {
     color: var(--vt-c-text-dark-4);
   }
 
   &--content-form {
-    background-color: var(--vt-c-white);
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 2px 9px 49px -17px rgba(0, 0, 0, 0.3);
-    max-width: 400px;
-    width: 100%;
-    margin: 3rem;
+    background-color: var(--surface-card);
+    padding: var(--space-32);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    max-width: 420px;
+    width: min(420px, calc(100% - var(--space-48)));
+    margin: var(--space-48) var(--space-24);
 
-    &-text {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 4px;
-      margin-bottom: 10px;
+  }
 
-      img {
-        width: 100%;
-        height: auto;
-        max-width: 30px;
-        object-fit: cover;
-      }
-    }
+  .wordmark {
+    margin: 0 0 var(--space-24);
+    font-size: 28px;
+    text-align: center;
+    color: var(--text-primary);
   }
 
   .form {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: var(--space-24);
 
     &-item {
       display: flex;
       flex-direction: column;
-      gap: 0.5rem;
+      gap: var(--space-8);
 
       &--button {
         display: block;
         width: 100%;
-        text-align: center;
-        margin-top: 1rem;
-        padding-top: 2rem;
-        border-top: 1px solid var(--vt-c-text-light-3)
+
+        .base-button {
+          width: 100%;
+        }
       }
     }
 
     input, select {
-      padding: 0.75rem;
-      border: 1px solid var(--vt-c-text-light-3);
-      border-radius: 8px;
-      font-size: 12px;
+      min-height: 44px;
+      padding: var(--space-12) var(--space-16);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-field);
+      font-size: 16px;
       width: 100%;
       box-sizing: border-box;
       font-family: 'Poppins', 'Source Sans Pro', sans-serif;
-      color: var(--vt-c-text-dark-3);
+      color: var(--text-primary);
       overflow: hidden;
 
       &:focus {
         outline: none;
-        border-color: var(--vt-primary);
+        border-color: var(--vt-c-text-brand-1);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--vt-c-text-brand-1);
+        outline-offset: 3px;
+        border-color: var(--vt-c-text-brand-1);
       }
     }
 
     label {
-      color: var(--vt-c-text-dark-3);
+      color: var(--text-primary);
+      font-size: 14px;
       font-weight: 500;
     }
   }
 }
 
+.switch-account {
+  margin: 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 14px;
+
+  a {
+    color: var(--vt-c-text-brand-1);
+    font-weight: 600;
+  }
+}
+
 .error {
-  color: red;
-  margin-top: 10px;
+  color: var(--color-error);
+  margin: 0;
   text-align: center;
 }
 </style>
