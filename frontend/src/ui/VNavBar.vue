@@ -76,7 +76,7 @@ const route = useRoute();
 const router = useRouter();
 const handleLogout = () => {
   auth.clearToken();
-  router.push({ name: 'login', params: { action: ActionRoute.access }});
+  router.push({ name: 'guest', params: { action: ActionRoute.access }});
 };
 
 const handleItemAction = (item: ListItem) => {
