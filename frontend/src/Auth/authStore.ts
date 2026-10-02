@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import axios from 'axios';
 import client from "@/router/client.ts";
+import { readApiError } from "@/ui/apiError.ts";
 
 export const authStore = defineStore('auth', {
     state: () => ({
@@ -45,9 +46,13 @@ export const authStore = defineStore('auth', {
             try {
                 const response = await axios.post(client("login"), credentials);
                 this.setToken(response.data?.token || '');
-            } catch (error: any) {
-                this.error = error.response?.data?.message || "Erro ao realizar login";
+            } catch (error: unknown) {
+                const parsed = readApiError(error, "Dados incorretos.");
+                this.error = Object.keys(parsed.fields).length > 0
+                    ? "Dados incorretos."
+                    : parsed.message;
                 console.error('Erro durante o login:', error);
+                throw error;
             }
         },
     },

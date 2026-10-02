@@ -5,12 +5,28 @@
       <form @submit.prevent="updatePreferences">
         <div class="form">
           <div class="form-item">
-            <label>Nome:</label>
-            <input type="text" v-model="formValues.name" required />
+            <label for="name">Nome:</label>
+            <input
+              id="name"
+              type="text"
+              v-model="formValues.name"
+              required
+              :aria-invalid="fieldErrors.name ? true : undefined"
+              :aria-describedby="fieldErrors.name ? 'name-error' : undefined"
+            />
+            <p v-if="fieldErrors.name" id="name-error" class="error" role="alert">{{ fieldErrors.name }}</p>
           </div>
           <div class="form-item">
-            <label>E-mail:</label>
-            <input type="email" v-model="formValues.email" required />
+            <label for="email">E-mail:</label>
+            <input
+              id="email"
+              type="email"
+              v-model="formValues.email"
+              required
+              :aria-invalid="fieldErrors.email ? true : undefined"
+              :aria-describedby="fieldErrors.email ? 'email-error' : undefined"
+            />
+            <p v-if="fieldErrors.email" id="email-error" class="error" role="alert">{{ fieldErrors.email }}</p>
           </div>
           <div class="form-item checkbox-container">
             <div class="checkbox-wrapper">
@@ -27,8 +43,11 @@
                 track-by="id"
                 :multiple="true"
                 placeholder="Selecione um ou mais seguimentos"
+                :aria-invalid="fieldErrors.segment_ids ? true : undefined"
+                :aria-describedby="fieldErrors.segment_ids ? 'segment-error' : undefined"
             >
             </multiselect>
+            <p v-if="fieldErrors.segment_ids" id="segment-error" class="error" role="alert">{{ fieldErrors.segment_ids }}</p>
           </div>
           <div class="form-item--button" v-if="formValues.name">
             <base-button
@@ -37,7 +56,6 @@
                 variant="default"
             />
           </div>
-          <p v-if="auth.error" class="error">{{ auth.error }}</p>
         </div>
       </form>
     </div>
@@ -46,22 +64,20 @@
 
 <script setup lang="ts">
 import { ref, onMounted, watchEffect  } from 'vue';
-import { authStore } from "@/Auth/authStore";
 import { segmentStore } from "@/Segment/segmentStore";
 import { userStore } from "@/User/userStore";
 import { useRouter } from 'vue-router';
 import BaseButton from "@/ui/BaseButton.vue";
+import { useToast } from "@/ui/useToast.ts";
 import { storeToRefs } from "pinia";
 import Multiselect from 'vue-multiselect';
 
 const useUserStore = userStore();
-const { user } = storeToRefs(useUserStore);
+const { user, fieldErrors } = storeToRefs(useUserStore);
+const toast = useToast();
 
 const useSegmentStore = segmentStore();
 const { segments } = storeToRefs(useSegmentStore);
-
-const auth = authStore();
-const {error} = storeToRefs(auth)
 
 const router = useRouter();
 
@@ -77,7 +93,7 @@ onMounted(async () => {
     try {
       await useUserStore.fetchUser();
     } catch (e: any) {
-      console.error("Erro ao carregar preferêncis:", error);
+      console.error("Erro ao carregar preferêncis:", e);
     }
   } else {
     if (!formValues.value.subscribed) {
@@ -114,8 +130,9 @@ const updatePreferences = async () => {
 
     await useUserStore.fetchUser();
     router.push({ name: 'home' });
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Update failed:', error);
+    toast.error(useUserStore.error);
   }
 };
 </script>
@@ -193,14 +210,9 @@ const updatePreferences = async () => {
       color: var(--text-primary);
       overflow: hidden;
 
-      &:focus {
-        outline: none;
-        border-color: var(--vt-c-text-brand-1);
-      }
-
+      &:focus,
       &:focus-visible {
-        outline: 2px solid var(--vt-c-text-brand-1);
-        outline-offset: 3px;
+        outline: none;
         border-color: var(--vt-c-text-brand-1);
       }
     }
@@ -252,6 +264,7 @@ const updatePreferences = async () => {
 .error {
   color: var(--color-error);
   margin: 0;
-  text-align: center;
+  text-align: left;
+  font-size: 14px;
 }
 </style>

@@ -23,7 +23,6 @@
             Não tens conta?
             <router-link :to="{ name: 'register' }">Regista-te</router-link>
           </p>
-          <p v-if="auth.error" class="error">{{ auth.error }}</p>
         </div>
       </form>
     </div>
@@ -37,7 +36,7 @@ import { segmentStore } from "@/Segment/segmentStore";
 import { userStore } from "@/User/userStore";
 import { useRoute, useRouter } from 'vue-router';
 import BaseButton from "@/ui/BaseButton.vue";
-import { storeToRefs } from "pinia";
+import { useToast } from "@/ui/useToast.ts";
 import { ActionRoute } from '@/router/ActionRoute.ts'
 
 const email = ref('');
@@ -46,7 +45,7 @@ const name = ref('');
 const selectedSegments = ref<Array<{id: number}>>([]);
 
 const auth = authStore();
-const {token, error} = storeToRefs(auth)
+const toast = useToast();
 
 const useSegmentStore = segmentStore();
 const useUserStore = userStore();
@@ -64,29 +63,30 @@ onMounted(async () => {
 });
 
 const handleLogin = async () => {
-  try {
-    let credentials: any = { email: email.value, password: password.value }
-    if (!hasFormRegister.value) {
-      await auth.login(credentials);
+  if (!hasFormRegister.value) {
+    try {
+      await auth.login({ email: email.value, password: password.value });
 
       if (auth.isAuthenticated()) {
-        router.push({ name: 'home' });
+        await router.push({ name: 'home' });
       }
-      return;
+    } catch (error: unknown) {
+      console.error(error);
+      toast.error(auth.error || "Dados incorretos.");
     }
+    return;
+  }
 
-    credentials = {
-      ...credentials,
+  try {
+    await useUserStore.create({
+      email: email.value,
+      password: password.value,
       name: name.value,
-      segment_ids: selectedSegments.value.map(s => s.id)
-    }
-
-    await useUserStore.create(credentials)
-  } catch (error: any) {
-    console.error(error.message);
-    alert(`Erro ao fazer login: ${error.message}`);
-  } finally {
-    await router.push({name: 'home'});
+      segment_ids: selectedSegments.value.map(s => s.id),
+    });
+  } catch (error: unknown) {
+    console.error(error);
+    toast.error(useUserStore.error || "Dados incorretos.");
   }
 };
 </script>
@@ -155,14 +155,9 @@ const handleLogin = async () => {
       color: var(--text-primary);
       overflow: hidden;
 
-      &:focus {
-        outline: none;
-        border-color: var(--vt-c-text-brand-1);
-      }
-
+      &:focus,
       &:focus-visible {
-        outline: 2px solid var(--vt-c-text-brand-1);
-        outline-offset: 3px;
+        outline: none;
         border-color: var(--vt-c-text-brand-1);
       }
     }
@@ -185,11 +180,5 @@ const handleLogin = async () => {
     color: var(--vt-c-text-brand-1);
     font-weight: 600;
   }
-}
-
-.error {
-  color: var(--color-error);
-  margin: 0;
-  text-align: center;
 }
 </style>

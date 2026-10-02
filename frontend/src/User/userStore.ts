@@ -2,6 +2,7 @@ import { defineStore } from "pinia";
 import axios from 'axios';
 import { UserModel } from "@/User/userModel.ts";
 import client from "@/router/client.ts";
+import { readApiError, type ApiFieldErrors } from "@/ui/apiError.ts";
 
 type PreferencesPayload = {
     name?: string;
@@ -16,18 +17,24 @@ export const userStore = defineStore('user', {
     state: () => ({
         user: UserModel.fromObject({}),
         error: '' as string,
+        fieldErrors: {} as ApiFieldErrors,
         isLoaded: false
     }),
 
     actions: {
         async create(data: any): Promise<void> {
+            this.error = '';
+            this.fieldErrors = {};
+
             try {
                 const response = await axios.post(client("user"), data);
                 this.user = UserModel.fromObject(response.data);
-            } catch (error: any) {
-                this.error = error.response?.data?.message || "Erro ao cadastrar usuário";
+            } catch (error: unknown) {
+                const parsed = readApiError(error, "Erro ao cadastrar usuário");
+                this.error = parsed.message;
+                this.fieldErrors = parsed.fields;
                 console.error('Erro ao criar usuário:', error);
-                alert('Erro ao criar usuário');
+                throw error;
             }
         },
         async fetchUser(): Promise<void> {
@@ -48,6 +55,9 @@ export const userStore = defineStore('user', {
             }
         },
         async syncUserPreference(data: PreferencesPayload): Promise<void> {
+            this.error = '';
+            this.fieldErrors = {};
+
             try {
                 const token = localStorage.getItem('token');
                 await axios.put(
@@ -65,8 +75,10 @@ export const userStore = defineStore('user', {
                         },
                     }
                 );
-            } catch (error: any) {
-                this.error = error.response?.data?.message || "Erro ao atualizar preferências";
+            } catch (error: unknown) {
+                const parsed = readApiError(error, "Erro ao atualizar preferências");
+                this.error = parsed.message;
+                this.fieldErrors = parsed.fields;
                 console.error('Erro no setPreferences:', error);
                 throw error;
             }

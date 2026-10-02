@@ -2,10 +2,12 @@
 <template>
   <div id="app">
     <router-view />
+    <toast-host />
   </div>
 </template>
 
 <script setup lang="ts">
+import ToastHost from "@/ui/ToastHost.vue";
 </script>
 
 <style>

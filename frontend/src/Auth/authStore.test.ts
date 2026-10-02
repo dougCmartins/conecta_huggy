@@ -33,10 +33,34 @@ describe("Auth Store", () => {
 
         const credentials = { email: 'teste@teste.com', password: '123' };
 
-        await store.login(credentials);
+        await expect(store.login(credentials)).rejects.toBeTruthy();
 
-        expect(store.error).toBe("Erro ao realizar login");
+        expect(store.error).toBe("Dados incorretos.");
         expect(store.token).toBe('');
         expect(localStorageMock.getItem('token')).toBeNull();
+    });
+
+    it("Deve guardar a mensagem de credenciais inválidas", async () => {
+        const store = authStore();
+
+        (axios.post as any).mockRejectedValue({
+            response: {
+                data: {
+                    data: null,
+                    message: "Invalid credentials.",
+                    code: "INVALID_CREDENTIALS",
+                    status_code: 401,
+                    errors: [],
+                },
+            },
+        });
+
+        await expect(store.login({
+            email: "martinsdouglas087@gmail.com",
+            password: "123",
+        })).rejects.toBeTruthy();
+
+        expect(store.error).toBe("Invalid credentials.");
+        expect(store.token).toBe('');
     });
 });

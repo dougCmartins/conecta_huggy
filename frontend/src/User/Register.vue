@@ -2,32 +2,59 @@
   <div class="login">
     <div class="login--content-form">
       <h1 class="wordmark">Conecta Huggy</h1>
-      <form @submit.prevent="handleUpdate">
+      <form @submit="onSubmit">
         <div class="form">
           <div class="form-item">
             <label for="name">Nome:</label>
-            <input type="text" v-model="name" id="name" required />
+            <input
+              type="text"
+              v-model="name"
+              v-bind="nameAttrs"
+              id="name"
+              :aria-invalid="errors.name ? true : undefined"
+              :aria-describedby="errors.name ? 'name-error' : undefined"
+            />
+            <p v-if="errors.name" id="name-error" class="error" role="alert">{{ errors.name }}</p>
           </div>
           <div class="form-item">
             <label for="email">E-mail:</label>
-            <input type="email" v-model="email" id="email" required />
+            <input
+              type="email"
+              v-model="email"
+              v-bind="emailAttrs"
+              id="email"
+              :aria-invalid="errors.email ? true : undefined"
+              :aria-describedby="errors.email ? 'email-error' : undefined"
+            />
+            <p v-if="errors.email" id="email-error" class="error" role="alert">{{ errors.email }}</p>
           </div>
           <div class="form-item">
             <label for="password">Senha:</label>
-            <input type="password" v-model="password" id="password" required />
+            <input
+              type="password"
+              v-model="password"
+              v-bind="passwordAttrs"
+              id="password"
+              :aria-invalid="errors.password ? true : undefined"
+              :aria-describedby="errors.password ? 'password-error' : undefined"
+            />
+            <p v-if="errors.password" id="password-error" class="error" role="alert">{{ errors.password }}</p>
           </div>
           <div class="form-item" v-if="segments">
             <label for="segment">Seguimentos de interesse:</label>
             <multiselect
-                v-model="selectedSegments"
+                v-model="segmentIds"
+                v-bind="segmentIdsAttrs"
                 :options="segments"
                 :multiple="true"
                 :close-on-select="false"
                 label="description"
                 track-by="id"
                 placeholder="Selecione um ou mais seguimentos"
-                required
+                :aria-invalid="errors.segment_ids ? true : undefined"
+                :aria-describedby="errors.segment_ids ? 'segment-error' : undefined"
             />
+            <p v-if="errors.segment_ids" id="segment-error" class="error" role="alert">{{ errors.segment_ids }}</p>
           </div>
           <div class="form-item--button">
             <base-button v-if="segments" type="submit" :text="formModule.button" variant="default" />
@@ -36,7 +63,6 @@
             Já tens conta?
             <router-link :to="{ name: 'login' }">Entra</router-link>
           </p>
-          <p v-if="auth.error" class="error">{{ auth.error }}</p>
         </div>
       </form>
     </div>
@@ -44,55 +70,69 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, onMounted } from 'vue';
-import { authStore } from "@/Auth/authStore";
+import { computed, onMounted } from 'vue';
+import { useForm } from 'vee-validate';
 import { segmentStore } from "@/Segment/segmentStore";
 import { userStore } from "@/User/userStore";
 import { useRouter } from 'vue-router';
 import BaseButton from "@/ui/BaseButton.vue";
+import { registerSchema } from "@/ui/formValidation.ts";
+import { useToast } from "@/ui/useToast.ts";
 import { storeToRefs } from "pinia";
 import Multiselect from 'vue-multiselect';
 
-const email = ref('');
-const password = ref('');
-const name = ref('');
-const selectedSegments = ref<Array<{id: number}>>([]);
+type SegmentOption = { id: number };
 
-const auth = authStore();
+const useUserStore = userStore();
+const toast = useToast();
 
 const useSegmentStore = segmentStore();
 const { segments } = storeToRefs(useSegmentStore);
 
-const useUserStore = userStore();
-
 const router = useRouter();
 
+const { errors, defineField, handleSubmit, setErrors } = useForm({
+  validationSchema: registerSchema,
+  initialValues: {
+    name: '',
+    email: '',
+    password: '',
+    segment_ids: [] as SegmentOption[],
+  },
+});
+
+const [name, nameAttrs] = defineField('name');
+const [email, emailAttrs] = defineField('email');
+const [password, passwordAttrs] = defineField('password');
+const [segmentIds, segmentIdsAttrs] = defineField('segment_ids');
+
 const formModule = computed(() => {
-  let item = { title: 'Registo', button: 'Registar' };
-  return item
+  return { title: 'Registo', button: 'Registar' };
 });
 
 onMounted(async () => {
   await useSegmentStore.fetchSegments();
 });
 
-const handleUpdate = async () => {
+const onSubmit = handleSubmit(async (values) => {
   try {
-    let credentials: any = { email: email.value, password: password.value }
-    credentials = {
-      ...credentials,
-      name: name.value,
-      segment_ids: selectedSegments.value.map(s => s.id)
+    await useUserStore.create({
+      name: values.name,
+      email: values.email,
+      password: values.password,
+      segment_ids: values.segment_ids.map((segment) => segment.id),
+    });
+    await router.push({ name: 'login' });
+  } catch (error: unknown) {
+    console.error(error);
+    if (Object.keys(useUserStore.fieldErrors).length > 0) {
+      setErrors(useUserStore.fieldErrors);
+      return;
     }
 
-    await useUserStore.create(credentials)
-  } catch (error: any) {
-    console.error(error.message);
-    alert(`Erro ao criar usuário: ${error.message}`);
-  } finally {
-    await router.push({name: 'login'});
+    toast.error(useUserStore.error);
   }
-};
+});
 </script>
 
 <style scoped lang="scss">
@@ -159,14 +199,9 @@ const handleUpdate = async () => {
       color: var(--text-primary);
       overflow: hidden;
 
-      &:focus {
-        outline: none;
-        border-color: var(--vt-c-text-brand-1);
-      }
-
+      &:focus,
       &:focus-visible {
-        outline: 2px solid var(--vt-c-text-brand-1);
-        outline-offset: 3px;
+        outline: none;
         border-color: var(--vt-c-text-brand-1);
       }
     }
@@ -208,6 +243,7 @@ const handleUpdate = async () => {
 .error {
   color: var(--color-error);
   margin: 0;
-  text-align: center;
+  text-align: left;
+  font-size: 14px;
 }
 </style>
